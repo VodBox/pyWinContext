@@ -1,3 +1,5 @@
+#! /usr/bin/python3
+
 import regutils as reg
 
 import time
@@ -6,6 +8,16 @@ import re
 import ctypes
 myappid = 'VodBox.pyWinContext.1.0' # arbitrary string
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+
+import os
+import argparse
+
+parser = argparse.ArgumentParser(description='Manager for Context Menu commands in Windows')
+parser.add_argument('-c', '--config', dest='config', default='%appdata%\\pyWinContext', help='Directory for Config and Local Storage')
+
+configLoc = parser.parse_args().config
+print(configLoc)
+
 
 import sys
 from PyQt5 import QtCore, QtGui
