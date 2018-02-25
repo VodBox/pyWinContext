@@ -26,21 +26,26 @@
    <property name="autoFillBackground">
     <bool>true</bool>
    </property>
-   <layout class="QGridLayout" name="gridLayout_3">
+   <layout class="QGridLayout" name="gridLayout_4">
     <item row="0" column="0">
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QTreeWidget" name="treeWidget">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>25</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">QHeaderView {
+      <widget class="QWidget" name="widget_3" native="true">
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="0">
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <widget class="QTreeWidget" name="treeWidget">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>25</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QHeaderView {
 	border: 1px solid #E5E5E5;
 }
 
@@ -67,50 +72,80 @@ QTreeView::branch:open:has-children:has-siblings  {
         border-image: none;
         image: url(:/images/images/branch-open.png);
 }</string>
-       </property>
-       <property name="dragEnabled">
-        <bool>false</bool>
-       </property>
-       <property name="dragDropOverwriteMode">
-        <bool>false</bool>
-       </property>
-       <property name="dragDropMode">
-        <enum>QAbstractItemView::NoDragDrop</enum>
-       </property>
-       <property name="indentation">
-        <number>18</number>
-       </property>
-       <property name="rootIsDecorated">
-        <bool>true</bool>
-       </property>
-       <property name="sortingEnabled">
-        <bool>true</bool>
-       </property>
-       <property name="animated">
-        <bool>true</bool>
-       </property>
-       <property name="allColumnsShowFocus">
-        <bool>true</bool>
-       </property>
-       <attribute name="headerCascadingSectionResizes">
-        <bool>false</bool>
-       </attribute>
-       <attribute name="headerDefaultSectionSize">
-        <number>140</number>
-       </attribute>
-       <attribute name="headerHighlightSections">
-        <bool>false</bool>
-       </attribute>
-       <column>
-        <property name="text">
-         <string>Commands</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Description</string>
-        </property>
-       </column>
+            </property>
+            <property name="dragEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="dragDropOverwriteMode">
+             <bool>false</bool>
+            </property>
+            <property name="dragDropMode">
+             <enum>QAbstractItemView::DragOnly</enum>
+            </property>
+            <property name="indentation">
+             <number>18</number>
+            </property>
+            <property name="rootIsDecorated">
+             <bool>true</bool>
+            </property>
+            <property name="sortingEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="animated">
+             <bool>true</bool>
+            </property>
+            <property name="allColumnsShowFocus">
+             <bool>true</bool>
+            </property>
+            <attribute name="headerCascadingSectionResizes">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="headerDefaultSectionSize">
+             <number>140</number>
+            </attribute>
+            <attribute name="headerHighlightSections">
+             <bool>false</bool>
+            </attribute>
+            <column>
+             <property name="text">
+              <string>Commands</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Description</string>
+             </property>
+            </column>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <item>
+             <widget class="QPushButton" name="pushButton_3">
+              <property name="text">
+               <string>New Command</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_4">
+              <item>
+               <widget class="QLineEdit" name="lineEdit_6"/>
+              </item>
+              <item>
+               <widget class="QPushButton" name="pushButton_2">
+                <property name="text">
+                 <string>Add Group</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+       </layout>
       </widget>
       <widget class="QWidget" name="widget_2" native="true">
        <property name="sizePolicy">
@@ -307,8 +342,16 @@ QTreeView::branch:open:has-children:has-siblings  {
     <property name="title">
      <string>File</string>
     </property>
+    <widget class="QMenu" name="menuExport">
+     <property name="title">
+      <string>Export...</string>
+     </property>
+     <addaction name="actionAll"/>
+     <addaction name="actionSelection"/>
+    </widget>
     <addaction name="actionLoad"/>
-    <addaction name="actionSave"/>
+    <addaction name="menuExport"/>
+    <addaction name="actionClear"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -317,17 +360,27 @@ QTreeView::branch:open:has-children:has-siblings  {
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionLoad">
    <property name="text">
-    <string>Load</string>
-   </property>
-  </action>
-  <action name="actionSave">
-   <property name="text">
-    <string>Save</string>
+    <string>Import</string>
    </property>
   </action>
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionAll">
+   <property name="text">
+    <string>All</string>
+   </property>
+  </action>
+  <action name="actionSelection">
+   <property name="text">
+    <string>Selection</string>
+   </property>
+  </action>
+  <action name="actionClear">
+   <property name="text">
+    <string>Clear</string>
    </property>
   </action>
  </widget>
