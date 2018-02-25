@@ -4,6 +4,7 @@
 import regutils as reg
 
 import time
+import re
 
 import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication, QTreeWidgetItem
@@ -22,12 +23,23 @@ class ExampleApp(QMainWindow, app.Ui_MainWindow):
 		types = {}
 		types["Other"] = []
 		for type in fts:
+			p = re.compile('(.+?)\/.+')
 			if "perceived-type" in fts[type] and not fts[type]["perceived-type"].capitalize() in types:
 				types[fts[type]["perceived-type"].capitalize()] = []
 				types[fts[type]["perceived-type"].capitalize()].append({"filetype": type,
 					"content-type": fts[type]["content-type"] if "content-type" in fts[type] else ""})
 			elif "perceived-type" in fts[type]:
 				types[fts[type]["perceived-type"].capitalize()].append({"filetype": type,
+					"content-type": fts[type]["content-type"] if "content-type" in fts[type] else ""})
+			elif "content-type" in fts[type] and fts[type]["content-type"].capitalize() in types:
+				types[fts[type]["content-type"].capitalize()].append({"filetype": type,
+					"content-type": fts[type]["content-type"] if "content-type" in fts[type] else ""})
+			elif "content-type" in fts[type] and p.match(fts[type]["content-type"]) and p.match(fts[type]["content-type"]).group(1).capitalize() in types:
+				types[p.match(fts[type]["content-type"]).group(1).capitalize()].append({"filetype": type,
+					"content-type": fts[type]["content-type"] if "content-type" in fts[type] else ""})
+			elif "content-type" in fts[type] and p.match(fts[type]["content-type"]):
+				types[p.match(fts[type]["content-type"]).group(1).capitalize()] = []
+				types[p.match(fts[type]["content-type"]).group(1).capitalize()].append({"filetype": type,
 					"content-type": fts[type]["content-type"] if "content-type" in fts[type] else ""})
 			else:
 				types["Other"].append({"filetype": type,
