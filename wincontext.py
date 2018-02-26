@@ -20,7 +20,7 @@ print(configLoc)
 
 
 import sys
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMainWindow, QApplication, QTreeWidgetItem
 import app
 
@@ -85,7 +85,12 @@ class ExampleApp(QMainWindow, app.Ui_MainWindow):
 		self.treeWidget_2.sortItems(0, 0)
 		self.treeWidget.sortItems(0, 0)
 		self.treeWidget_2.itemChanged.connect(self.files_change)
+		self.treeWidget.itemChanged.connect(self.left_bar_change)
+		self.lineEdit.textChanged.connect(self.name_change)
+		self.lineEdit_2.textChanged.connect(self.desc_change)
+		self.lineEdit_3.textChanged.connect(self.com_change)
 		self.treeWidget_2.resizeColumnToContents(0)
+		self.treeWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 		self.lineEdit_4.textChanged.connect(self.search_change)
 		self.pushButton_2.clicked.connect(self.group_button)
 		self.pushButton_3.clicked.connect(self.command_button)
@@ -145,6 +150,32 @@ class ExampleApp(QMainWindow, app.Ui_MainWindow):
 				parent.setCheckState(0, QtCore.Qt.Unchecked)
 			data.treeWidget().blockSignals(oldState)
 			
+	def left_bar_change(self, data):
+		items = self.treeWidget.selectedItems()
+		selected = len(items)
+		if selected == 1:
+			oldState = self.formLayout.blockSignals(True)
+			self.lineEdit.setText(items[0].text(0))
+			self.lineEdit_2.setText(items[0].text(1))
+			self.lineEdit_3.setText(items[0].command)
+			self.formLayout.blockSignals(oldState)
+			
+	def name_change(self, text):
+		items = self.treeWidget.selectedItems()
+		oldState = self.treeWidget.blockSignals(True)
+		items[0].setText(0, text)
+		self.treeWidget.blockSignals(oldState)
+		
+	def desc_change(self, text):
+		items = self.treeWidget.selectedItems()
+		oldState = self.treeWidget.blockSignals(True)
+		items[0].setText(1, text)
+		self.treeWidget.blockSignals(oldState)
+		
+	def com_change(self, text):
+		items = self.treeWidget.selectedItems()
+		items[0].command = text
+			
 	def add_group(self, name, desc):
 		itemGroup = QTreeWidgetItem(self.treeWidget)
 		itemGroup.setBackground(0, QtGui.QColor(176, 234, 253))
@@ -159,8 +190,10 @@ class ExampleApp(QMainWindow, app.Ui_MainWindow):
 		itemCommand.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDragEnabled)
 		itemCommand.isCommand = True
 		itemCommand.filetypes = []
+		itemCommand.command = ""
 		self.treeWidget.topLevelItem(self.treeWidget.topLevelItemCount() - 1).setText(0, name)
 		self.treeWidget.topLevelItem(self.treeWidget.topLevelItemCount() - 1).setText(1, desc)
+		self.treeWidget.setCurrentItem(itemCommand)
 		self.treeWidget.editItem(itemCommand, 0)
 	
 	def group_button(self):
@@ -171,6 +204,7 @@ class ExampleApp(QMainWindow, app.Ui_MainWindow):
 		
 	def command_select(self):
 		items = self.treeWidget.selectedItems()
+		selected = len(items)
 		itemCount = 0
 		results = {}
 		for x in range(0, len(items)):
@@ -190,6 +224,25 @@ class ExampleApp(QMainWindow, app.Ui_MainWindow):
 							top.child(childIdx).setCheckState(0, QtCore.Qt.Unchecked)
 					self.treeWidget_2.blockSignals(oldState)
 					top.child(0).emitDataChanged()
+		if selected == 1:
+			oldState = self.formLayout.blockSignals(True)
+			self.label.setEnabled(True)
+			self.lineEdit.setEnabled(True)
+			self.lineEdit.setText(items[0].text(0))
+			self.label_2.setEnabled(True)
+			self.lineEdit_2.setEnabled(True)
+			self.lineEdit_2.setText(items[0].text(1))
+			self.label_3.setEnabled(True)
+			self.lineEdit_3.setEnabled(True)
+			self.lineEdit_3.setText(items[0].command)
+			self.formLayout.blockSignals(oldState)
+		else:
+			self.label.setEnabled(False)
+			self.lineEdit.setEnabled(False)
+			self.label_2.setEnabled(False)
+			self.lineEdit_2.setEnabled(False)
+			self.label_3.setEnabled(False)
+			self.lineEdit_3.setEnabled(False)
 
 
 def main():
