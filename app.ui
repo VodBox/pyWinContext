@@ -98,10 +98,10 @@ QTreeView::branch:open:has-children:has-siblings  {
              <bool>true</bool>
             </property>
             <property name="dragDropOverwriteMode">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
             <property name="dragDropMode">
-             <enum>QAbstractItemView::DragOnly</enum>
+             <enum>QAbstractItemView::InternalMove</enum>
             </property>
             <property name="indentation">
              <number>18</number>

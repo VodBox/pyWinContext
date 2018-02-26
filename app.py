@@ -71,8 +71,8 @@ class Ui_MainWindow(object):
 "        image: url(:/images/images/branch-open.png);\n"
 "}")
         self.treeWidget.setDragEnabled(True)
-        self.treeWidget.setDragDropOverwriteMode(False)
-        self.treeWidget.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
+        self.treeWidget.setDragDropOverwriteMode(True)
+        self.treeWidget.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
         self.treeWidget.setIndentation(18)
         self.treeWidget.setRootIsDecorated(True)
         self.treeWidget.setAnimated(True)
