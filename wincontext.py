@@ -224,7 +224,7 @@ class ExampleApp(QMainWindow, app.Ui_MainWindow):
 							top.child(childIdx).setCheckState(0, QtCore.Qt.Unchecked)
 					self.treeWidget_2.blockSignals(oldState)
 					top.child(0).emitDataChanged()
-		if selected == 1:
+		if selected == 1 and items[0].isCommand:
 			oldState = self.formLayout.blockSignals(True)
 			self.label.setEnabled(True)
 			self.lineEdit.setEnabled(True)
