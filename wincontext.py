@@ -89,6 +89,7 @@ class ExampleApp(QMainWindow, app.Ui_MainWindow):
 		self.lineEdit_4.textChanged.connect(self.search_change)
 		self.pushButton_2.clicked.connect(self.group_button)
 		self.pushButton_3.clicked.connect(self.command_button)
+		self.treeWidget.itemSelectionChanged.connect(self.command_select)
 		self.show()
 
 	def search_change(self, text):
@@ -100,6 +101,18 @@ class ExampleApp(QMainWindow, app.Ui_MainWindow):
 				else:
 					self.treeWidget_2.topLevelItem(i).child(x).setHidden(False)
 
+	def add_to_selected(self, filetype):
+		for item in self.treeWidget.selectedItems():
+			if not filetype in item.filetypes:
+				item.filetypes.append(filetype)
+				
+	def remove_from_selected(self, filetype):
+		for item in self.treeWidget.selectedItems():
+			try:
+				item.filetypes.remove(filetype)
+			except:
+				pass
+					
 	def files_change(self, data):
 		parent = data.parent()
 		if data.childCount() > 0 and data.checkState(0) != QtCore.Qt.PartiallyChecked:
@@ -107,22 +120,29 @@ class ExampleApp(QMainWindow, app.Ui_MainWindow):
 			for childIdx in range(0, data.childCount()):
 				oldState = data.treeWidget().blockSignals(True)
 				data.child(childIdx).setCheckState(0, checkState)
+				for item in self.treeWidget.selectedItems():
+					if checkState == QtCore.Qt.Checked:
+						self.add_to_selected(data.child(childIdx).text(0))
+					elif check == QtCore.Qt.Unchecked:
+						self.remove_from_selected(data.child(childIdx).text(0))
 				data.treeWidget().blockSignals(oldState)
 		elif parent != None and type(parent) is QTreeWidgetItem:
 			oldState = data.treeWidget().blockSignals(True)
-
 			numEnabled = 0
 			for childIdx in range(0, parent.childCount()):
 				if data.isSelected() and parent.child(childIdx) != data and parent.child(childIdx).isSelected():
 					parent.child(childIdx).setCheckState(0, data.checkState(0))
-				numEnabled += (1 if parent.child(childIdx).checkState(0) == QtCore.Qt.Checked else 0)
+				if parent.child(childIdx).checkState(0) == QtCore.Qt.Checked:
+					numEnabled += 1
+					self.add_to_selected(parent.child(childIdx).text(0))
+				elif parent.child(childIdx).checkState(0) == QtCore.Qt.Unchecked:
+					self.remove_from_selected(parent.child(childIdx).text(0))
 			if numEnabled == parent.childCount():
 				parent.setCheckState(0, QtCore.Qt.Checked)
 			elif numEnabled > 0:
 				parent.setCheckState(0, QtCore.Qt.PartiallyChecked)
 			else:
 				parent.setCheckState(0, QtCore.Qt.Unchecked)
-
 			data.treeWidget().blockSignals(oldState)
 			
 	def add_group(self, name, desc):
@@ -132,12 +152,13 @@ class ExampleApp(QMainWindow, app.Ui_MainWindow):
 		itemGroup.isCommand = False
 		self.treeWidget.topLevelItem(self.treeWidget.topLevelItemCount() - 1).setText(0, name)
 		self.treeWidget.topLevelItem(self.treeWidget.topLevelItemCount() - 1).setText(1, desc)
-		self.treeWidget.editItem(itemGroup, 0)
+		self.treeWidget.editItem(itemGroup, 1)
 	
 	def add_command(self, name, desc):
 		itemCommand = QTreeWidgetItem(self.treeWidget)
 		itemCommand.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDragEnabled)
 		itemCommand.isCommand = True
+		itemCommand.filetypes = []
 		self.treeWidget.topLevelItem(self.treeWidget.topLevelItemCount() - 1).setText(0, name)
 		self.treeWidget.topLevelItem(self.treeWidget.topLevelItemCount() - 1).setText(1, desc)
 		self.treeWidget.editItem(itemCommand, 0)
@@ -147,6 +168,28 @@ class ExampleApp(QMainWindow, app.Ui_MainWindow):
 		
 	def command_button(self):
 		self.add_command("Command", "Command Description")
+		
+	def command_select(self):
+		items = self.treeWidget.selectedItems()
+		itemCount = 0
+		results = {}
+		for x in range(0, len(items)):
+			if items[x].isCommand:
+				itemCount += 1
+				for topIdx in range(0, self.treeWidget_2.topLevelItemCount()):
+					top = self.treeWidget_2.topLevelItem(topIdx)
+					oldState = self.treeWidget_2.blockSignals(True)
+					for childIdx in range(0, top.childCount()):
+						if top.child(childIdx).text(0) in items[x].filetypes:
+							results[top.child(childIdx).text(0)] = results[top.child(childIdx).text(0)] + 1 if top.child(childIdx).text(0) in results else 1
+						if top.child(childIdx).text(0) in results and results[top.child(childIdx).text(0)] == itemCount:
+							top.child(childIdx).setCheckState(0, QtCore.Qt.Checked)
+						elif top.child(childIdx).text(0) in results:
+							top.child(childIdx).setCheckState(0, QtCore.Qt.PartiallyChecked)
+						else:
+							top.child(childIdx).setCheckState(0, QtCore.Qt.Unchecked)
+					self.treeWidget_2.blockSignals(oldState)
+					top.child(0).emitDataChanged()
 
 
 def main():
