@@ -81,26 +81,14 @@ class ExampleApp(QMainWindow, app.Ui_MainWindow):
 				fileIncrement += 1
 			increment += 1
 		self.treeWidget.setSortingEnabled(False)
-		itemGroup = QTreeWidgetItem(self.treeWidget)
-		itemGroup.setBackground(0, QtGui.QColor(176, 234, 253))
-		itemGroup.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled)
-		itemGroup = QTreeWidgetItem(self.treeWidget)
-		itemGroup.setBackground(0, QtGui.QColor(176, 234, 253))
-		itemGroup.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled)
-		itemGroup = QTreeWidgetItem(self.treeWidget)
-		itemGroup.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDragEnabled)
-		self.treeWidget.topLevelItem(0).setText(0, "Group 1")
-		self.treeWidget.topLevelItem(0).setText(1, "Initial Group")
-		self.treeWidget.topLevelItem(1).setText(0, "Group 2")
-		self.treeWidget.topLevelItem(1).setText(1, "Initial Group")
-		self.treeWidget.topLevelItem(2).setText(0, "Command 1")
-		self.treeWidget.topLevelItem(2).setText(1, "My First Command")
 		self.treeWidget_2.setSortingEnabled(True)
 		self.treeWidget_2.sortItems(0, 0)
 		self.treeWidget.sortItems(0, 0)
 		self.treeWidget_2.itemChanged.connect(self.files_change)
 		self.treeWidget_2.resizeColumnToContents(0)
 		self.lineEdit_4.textChanged.connect(self.search_change)
+		self.pushButton_2.clicked.connect(self.group_button)
+		self.pushButton_3.clicked.connect(self.command_button)
 		self.show()
 
 	def search_change(self, text):
@@ -136,6 +124,29 @@ class ExampleApp(QMainWindow, app.Ui_MainWindow):
 				parent.setCheckState(0, QtCore.Qt.Unchecked)
 
 			data.treeWidget().blockSignals(oldState)
+			
+	def add_group(self, name, desc):
+		itemGroup = QTreeWidgetItem(self.treeWidget)
+		itemGroup.setBackground(0, QtGui.QColor(176, 234, 253))
+		itemGroup.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled)
+		itemGroup.isCommand = False
+		self.treeWidget.topLevelItem(self.treeWidget.topLevelItemCount() - 1).setText(0, name)
+		self.treeWidget.topLevelItem(self.treeWidget.topLevelItemCount() - 1).setText(1, desc)
+		self.treeWidget.editItem(itemGroup, 0)
+	
+	def add_command(self, name, desc):
+		itemCommand = QTreeWidgetItem(self.treeWidget)
+		itemCommand.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDragEnabled)
+		itemCommand.isCommand = True
+		self.treeWidget.topLevelItem(self.treeWidget.topLevelItemCount() - 1).setText(0, name)
+		self.treeWidget.topLevelItem(self.treeWidget.topLevelItemCount() - 1).setText(1, desc)
+		self.treeWidget.editItem(itemCommand, 0)
+	
+	def group_button(self):
+		self.add_group(self.lineEdit_6.displayText() if self.lineEdit_6.displayText() != "" else "Group", "Group Description")
+		
+	def command_button(self):
+		self.add_command("Command", "Command Description")
 
 
 def main():
