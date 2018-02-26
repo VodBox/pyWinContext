@@ -88,7 +88,6 @@ class ExampleApp(QMainWindow, app.Ui_MainWindow):
 		self.treeWidget.itemChanged.connect(self.left_bar_change)
 		self.lineEdit.textChanged.connect(self.name_change)
 		self.lineEdit_2.textChanged.connect(self.desc_change)
-		self.lineEdit_3.textChanged.connect(self.com_change)
 		self.treeWidget_2.resizeColumnToContents(0)
 		self.treeWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 		self.lineEdit_4.textChanged.connect(self.search_change)
@@ -157,7 +156,6 @@ class ExampleApp(QMainWindow, app.Ui_MainWindow):
 			oldState = self.formLayout.blockSignals(True)
 			self.lineEdit.setText(items[0].text(0))
 			self.lineEdit_2.setText(items[0].text(1))
-			self.lineEdit_3.setText(items[0].command)
 			self.formLayout.blockSignals(oldState)
 			
 	def name_change(self, text):
@@ -233,8 +231,6 @@ class ExampleApp(QMainWindow, app.Ui_MainWindow):
 			self.lineEdit_2.setEnabled(True)
 			self.lineEdit_2.setText(items[0].text(1))
 			self.label_3.setEnabled(True)
-			self.lineEdit_3.setEnabled(True)
-			self.lineEdit_3.setText(items[0].command)
 			self.formLayout.blockSignals(oldState)
 		else:
 			self.label.setEnabled(False)
@@ -242,7 +238,6 @@ class ExampleApp(QMainWindow, app.Ui_MainWindow):
 			self.label_2.setEnabled(False)
 			self.lineEdit_2.setEnabled(False)
 			self.label_3.setEnabled(False)
-			self.lineEdit_3.setEnabled(False)
 
 
 def main():

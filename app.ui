@@ -27,12 +27,33 @@
     <bool>true</bool>
    </property>
    <layout class="QGridLayout" name="gridLayout_4">
+    <property name="leftMargin">
+     <number>10</number>
+    </property>
+    <property name="topMargin">
+     <number>10</number>
+    </property>
+    <property name="rightMargin">
+     <number>10</number>
+    </property>
+    <property name="bottomMargin">
+     <number>10</number>
+    </property>
+    <property name="spacing">
+     <number>5</number>
+    </property>
     <item row="0" column="0">
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
+      <property name="handleWidth">
+       <number>10</number>
+      </property>
       <widget class="QWidget" name="widget_3" native="true">
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
          <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -154,6 +175,9 @@ QTreeView::branch:open:has-children:has-siblings  {
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
        <layout class="QGridLayout" name="gridLayout">
         <item row="0" column="0">
          <layout class="QVBoxLayout" name="verticalLayout">
@@ -254,8 +278,11 @@ QTreeView::branch:open:has-children:has-siblings  {
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <layout class="QGridLayout" name="gridLayout_2">
-        <item row="0" column="0">
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
          <layout class="QFormLayout" name="formLayout">
           <item row="0" column="0">
            <widget class="QLabel" name="label">
@@ -301,13 +328,6 @@ QTreeView::branch:open:has-children:has-siblings  {
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
-           <widget class="QLineEdit" name="lineEdit_3">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
           <item row="2" column="1">
            <spacer name="verticalSpacer">
             <property name="orientation">
@@ -320,6 +340,31 @@ QTreeView::branch:open:has-children:has-siblings  {
              </size>
             </property>
            </spacer>
+          </item>
+          <item row="3" column="1">
+           <widget class="QPushButton" name="pushButton_6">
+            <property name="text">
+             <string>Open Menu</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QPushButton" name="pushButton_5">
+            <property name="text">
+             <string>Apply</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_4">
+            <property name="text">
+             <string>Clear</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
