@@ -89,6 +89,7 @@ class ExampleApp(QMainWindow, app.Ui_MainWindow):
 		self.lineEdit.textChanged.connect(self.name_change)
 		self.lineEdit_2.textChanged.connect(self.desc_change)
 		self.treeWidget_2.resizeColumnToContents(0)
+		self.treeWidget_2.setDisabled(True)
 		self.treeWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 		self.lineEdit_4.textChanged.connect(self.search_change)
 		self.pushButton_2.clicked.connect(self.group_button)
@@ -227,6 +228,7 @@ class ExampleApp(QMainWindow, app.Ui_MainWindow):
 		for topIdx in range(0, self.treeWidget_2.topLevelItemCount()):
 			self.treeWidget_2.topLevelItem(topIdx).child(0).emitDataChanged()
 		if selected == 1 and items[0].isCommand:
+			self.treeWidget_2.setDisabled(False)
 			oldState = self.formLayout.blockSignals(True)
 			self.label.setEnabled(True)
 			self.lineEdit.setEnabled(True)
@@ -237,6 +239,8 @@ class ExampleApp(QMainWindow, app.Ui_MainWindow):
 			self.label_3.setEnabled(True)
 			self.formLayout.blockSignals(oldState)
 		else:
+			disable = True if selected == 0 else False
+			self.treeWidget_2.setDisabled(disable)
 			self.label.setEnabled(False)
 			self.lineEdit.setEnabled(False)
 			self.label_2.setEnabled(False)
