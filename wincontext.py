@@ -21,8 +21,9 @@ print(configLoc)
 
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QMainWindow, QApplication, QTreeWidgetItem
+from PyQt5.QtWidgets import QMainWindow, QApplication, QTreeWidgetItem, QDialog
 import app
+import command
 
 class WinContextApp(QMainWindow, app.Ui_MainWindow):
 	def __init__(self, direct):
@@ -95,6 +96,7 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 		self.lineEdit_4.textChanged.connect(self.search_change)
 		self.pushButton_2.clicked.connect(self.group_button)
 		self.pushButton_3.clicked.connect(self.command_button)
+		self.pushButton_6.clicked.connect(self.open_command)
 		self.treeWidget.itemSelectionChanged.connect(self.command_select)
 		self.show()
 
@@ -238,6 +240,7 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 			self.lineEdit_2.setEnabled(True)
 			self.lineEdit_2.setText(items[0].text(1))
 			self.label_3.setEnabled(True)
+			self.pushButton_6.setEnabled(True)
 			self.formLayout.blockSignals(oldState)
 		else:
 			disable = True if selected == 0 else False
@@ -247,7 +250,28 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 			self.label_2.setEnabled(False)
 			self.lineEdit_2.setEnabled(False)
 			self.label_3.setEnabled(False)
-
+			self.pushButton_6.setEnabled(False)
+			
+			
+	def open_command(self):
+		self.setEnabled(False)
+		dialog = CommandDialog(self.treeWidget.selectedItems()[0])
+		dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+		dialog.exec_()
+		self.setEnabled(True)
+			
+class CommandDialog(QDialog, command.Ui_Command):
+	def __init__(self, widget):
+		super(self.__class__, self).__init__()
+		self.setupUi(self)
+		self.command = widget
+		self.initUI()
+		
+	def save(self):
+		print("accepted")
+		
+	def initUI(self):
+		self.accepted.connect(self.save)
 
 def main(direct):
 	app = QApplication(sys.argv)
