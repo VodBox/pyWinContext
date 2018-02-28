@@ -95,9 +95,9 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 		self.treeWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 		self.lineEdit_4.textChanged.connect(self.search_change)
 		self.pushButton_2.clicked.connect(self.group_button)
-		self.pushButton_3.clicked.connect(self.command_button)
+		self.pushButton_3.clicked.connect(self.action_button)
 		self.pushButton_6.clicked.connect(self.open_command)
-		self.treeWidget.itemSelectionChanged.connect(self.command_select)
+		self.treeWidget.itemSelectionChanged.connect(self.action_select)
 		self.show()
 
 	def search_change(self, text):
@@ -203,10 +203,10 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 	def group_button(self):
 		self.add_group(self.lineEdit_6.displayText() if self.lineEdit_6.displayText() != "" else "Group", "Group Description")
 		
-	def command_button(self):
-		self.add_command("Command", "Command Description")
+	def action_button(self):
+		self.add_command("Action", "Action Description")
 		
-	def command_select(self):
+	def action_select(self):
 		items = self.treeWidget.selectedItems()
 		selected = len(items)
 		itemCount = 0

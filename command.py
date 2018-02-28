@@ -60,7 +60,7 @@ class Ui_Command(object):
 
     def retranslateUi(self, Command):
         _translate = QtCore.QCoreApplication.translate
-        Command.setWindowTitle(_translate("Command", "Action Editor"))
+        Command.setWindowTitle(_translate("Command", "Command Editor"))
         self.radioButton.setText(_translate("Command", ".BAT File"))
         self.pushButton.setText(_translate("Command", "Select..."))
         self.label.setText(_translate("Command", "File"))
