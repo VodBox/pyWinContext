@@ -24,9 +24,10 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMainWindow, QApplication, QTreeWidgetItem
 import app
 
-class ExampleApp(QMainWindow, app.Ui_MainWindow):
-	def __init__(self):
+class WinContextApp(QMainWindow, app.Ui_MainWindow):
+	def __init__(self, direct):
 		super(self.__class__, self).__init__()
+		self.direct = direct
 		self.setupUi(self)
 		self.initUI()
 
@@ -248,12 +249,12 @@ class ExampleApp(QMainWindow, app.Ui_MainWindow):
 			self.label_3.setEnabled(False)
 
 
-def main():
+def main(direct):
 	app = QApplication(sys.argv)
-	form = ExampleApp()
-	form.show()
+	ui = WinContextApp(direct)
+	ui.show()
 	app.exec_()
 
 
 if __name__ == '__main__':
-	main()
+	main(False)
