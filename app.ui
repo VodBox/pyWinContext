@@ -151,9 +151,6 @@ QTreeView::branch:open:has-children:has-siblings  {
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_4">
               <item>
-               <widget class="QLineEdit" name="lineEdit_6"/>
-              </item>
-              <item>
                <widget class="QPushButton" name="pushButton_2">
                 <property name="text">
                  <string>Add Group</string>
@@ -161,6 +158,13 @@ QTreeView::branch:open:has-children:has-siblings  {
                </widget>
               </item>
              </layout>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_7">
+              <property name="text">
+               <string>Remove Selection</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -318,16 +322,6 @@ QTreeView::branch:open:has-children:has-siblings  {
             </property>
            </widget>
           </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_3">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Commands</string>
-            </property>
-           </widget>
-          </item>
           <item row="2" column="1">
            <spacer name="verticalSpacer">
             <property name="orientation">
@@ -341,45 +335,38 @@ QTreeView::branch:open:has-children:has-siblings  {
             </property>
            </spacer>
           </item>
-          <item row="4" column="1">
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Commands</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
            <widget class="QPushButton" name="pushButton_6">
             <property name="enabled">
              <bool>false</bool>
             </property>
             <property name="text">
-             <string>Open Menu</string>
+             <string>Open Editor</string>
             </property>
            </widget>
           </item>
-          <item row="5" column="0">
+          <item row="4" column="0">
            <widget class="QLabel" name="label_5">
             <property name="enabled">
              <bool>false</bool>
             </property>
             <property name="text">
-             <string>After</string>
+             <string>Run Next</string>
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
+          <item row="4" column="1">
            <widget class="QComboBox" name="comboBox">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_6">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Before</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QComboBox" name="comboBox_2">
             <property name="enabled">
              <bool>false</bool>
             </property>
