@@ -1,9 +1,12 @@
 #! /usr/bin/python3
 
 import launch_dialog
-import sys
+import sys, ctypes
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import QDialog, QApplication
+
+myappid = 'VodBox.pyWinContext.1.0' # arbitrary string
+ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 class LaunchDialog(QDialog, launch_dialog.Ui_Dialog):
 	def __init__(self):

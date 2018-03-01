@@ -375,22 +375,7 @@ QTreeView::branch:open:has-children:has-siblings  {
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <item>
-           <widget class="QPushButton" name="pushButton_5">
-            <property name="text">
-             <string>Apply</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushButton_4">
-            <property name="text">
-             <string>Clear</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <layout class="QHBoxLayout" name="horizontalLayout_3"/>
         </item>
        </layout>
       </widget>
