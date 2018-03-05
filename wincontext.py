@@ -5,6 +5,12 @@ import regutils as reg
 import time
 import re
 
+import uuid
+
+from pathlib import Path
+from collections import OrderedDict
+import json
+
 import ctypes
 myappid = 'VodBox.pyWinContext.1.0' # arbitrary string
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
@@ -15,8 +21,10 @@ import argparse
 parser = argparse.ArgumentParser(description='Manager for Context Menu commands in Windows')
 parser.add_argument('-c', '--config', dest='config', default='%appdata%\\pyWinContext', help='Directory for Config and Local Storage')
 
-configLoc = parser.parse_args().config
-print(configLoc)
+configLoc = os.path.expandvars(parser.parse_args().config)
+configPath = Path(configLoc)
+if not configPath.is_dir():
+	os.mkdir(configLoc)
 
 class ComModes:
     BAT, List = range(2)
@@ -27,12 +35,37 @@ from PyQt5.QtWidgets import *
 import app
 import command
 
+import output
+
 class WinContextApp(QMainWindow, app.Ui_MainWindow):
 	def __init__(self, direct):
 		super(self.__class__, self).__init__()
 		self.direct = direct
+		self.hasChanges = False
 		self.setupUi(self)
+		self.treeWidget.setSortingEnabled(False)
+		self.load()
 		self.initUI()
+		
+	def closeEvent(self, event):
+		if self.hasChanges:
+			resBtn = QMessageBox.question(self, "pyWinContect", "Save changes before exiting?",
+																	QMessageBox.Save | QMessageBox.Discard |
+																	QMessageBox.Cancel, QMessageBox.Save)
+			if resBtn == QMessageBox.Cancel:
+				event.ignore()
+			elif resBtn == QMessageBox.Save:
+				save = self.action_save()
+				if save:
+					event.accept()
+				else:
+					event.ignore()
+			return
+		event.accept()
+		
+	def changes(self):
+		self.hasChanges = True
+		self.setWindowTitle('* pyWinContext')
 
 	def initUI(self):
 		app_icon = QtGui.QIcon()
@@ -42,7 +75,11 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 		app_icon.addFile('images/icon_48.png', QtCore.QSize(48,48))
 		app_icon.addFile('images/icon.png', QtCore.QSize(256,256))
 		self.setWindowIcon(app_icon)
-		self.statusBar().showMessage('Ready')
+		self.actionExit.triggered.connect(self.close)
+		self.actionSave.triggered.connect(self.action_save)
+		self.actionSave.setShortcut(QtGui.QKeySequence("Ctrl+S"))
+		self.actionImport.triggered.connect(self.action_import)
+		self.actionExport.triggered.connect(self.action_export)
 		self.setWindowTitle('pyWinContext')
 		fts = reg.get_file_types()
 		types = {}
@@ -81,10 +118,8 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 				item_1.setCheckState(0, QtCore.Qt.Unchecked)
 				item_1.setText(0, file["filetype"])
 				item_1.setText(1, file["content-type"])
-		self.treeWidget.setSortingEnabled(False)
 		self.treeWidget_2.setSortingEnabled(True)
 		self.treeWidget_2.sortItems(0, 0)
-		self.treeWidget.sortItems(0, 0)
 		self.treeWidget_2.itemChanged.connect(self.files_change)
 		self.treeWidget.itemChanged.connect(self.left_bar_change)
 		self.lineEdit.textChanged.connect(self.name_change)
@@ -101,6 +136,55 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 		self.comboBox.currentIndexChanged.connect(self.after_change)
 		self.pushButton.clicked.connect(self.add_custom_filetype)
 		self.show()
+		self.statusBar().showMessage('Ready')
+		
+	def load(self):
+		config = Path(configLoc + "\\config.json")
+		if config.is_file():
+			file = open(configLoc + "\\config.json", 'r')
+			data = json.loads(file.read(), object_pairs_hook=OrderedDict)
+			self.create_items(data, self.treeWidget)
+			file.close()
+			
+	def create_items(self, data, parent):
+		for item in data:
+			item = data[item]
+			if "command" in item:
+				com = self.add_command(item["name"], item["description"], True, parent)
+				com.commandMode = item["commandMode"]
+				if com.commandMode == ComModes.BAT:
+					com.path = item["command"]
+				else:
+					com.commands = item["command"]
+				com.filetypes = item["filetypes"]
+				com.after = item["after"]
+				com.id = item["id"]
+			else:
+				group = self.add_group(item["name"], item["description"], True, parent)
+				self.create_items(item["children"], group)
+		
+	def action_save(self):
+		data = self.get_save_data()
+		config = Path(configLoc + "\\config.json")
+		configBak = Path(configLoc + "\\config.json.bak")
+		if config.is_file():
+			config.replace(configBak)
+		file = open(configLoc + "\\config.json", 'w')
+		file.write(json.dumps(data, indent=4))
+		file.close()
+		#if self.direct:
+		#	output.reg_save(data)
+		#else:
+		#	output.direct_save(data)
+		self.hasChanges = False
+		self.setWindowTitle('pyWinContext')
+		return True
+		
+	def action_import(self):
+		pass
+		
+	def action_export(self):
+		pass
 
 	def search_change(self, text):
 		for i in range(0, self.treeWidget_2.topLevelItemCount()):
@@ -112,11 +196,13 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 					self.treeWidget_2.topLevelItem(i).child(x).setHidden(False)
 
 	def add_to_selected(self, filetype):
+		self.changes()
 		for item in self.treeWidget.selectedItems():
 			if item.isCommand and not filetype in item.filetypes:
 				item.filetypes.append(filetype)
 				
 	def remove_from_selected(self, filetype):
+		self.changes()
 		for item in self.treeWidget.selectedItems():
 			if item.isCommand:
 				try:
@@ -125,6 +211,7 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 					pass
 					
 	def files_change(self, data):
+		self.changes()
 		parent = data.parent()
 		if data.childCount() > 0 and data.checkState(0) != QtCore.Qt.PartiallyChecked:
 			checkState = data.checkState(0)
@@ -159,6 +246,7 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 			data.treeWidget().blockSignals(oldState)
 			
 	def left_bar_change(self, data):
+		self.changes()
 		items = self.treeWidget.selectedItems()
 		selected = len(items)
 		if selected == 1:
@@ -168,43 +256,53 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 			self.formLayout.blockSignals(oldState)
 			
 	def name_change(self, text):
+		self.changes()
 		items = self.treeWidget.selectedItems()
 		oldState = self.treeWidget.blockSignals(True)
 		items[0].setText(0, text)
 		self.treeWidget.blockSignals(oldState)
 		
 	def desc_change(self, text):
+		self.changes()
 		items = self.treeWidget.selectedItems()
 		oldState = self.treeWidget.blockSignals(True)
 		items[0].setText(1, text)
 		self.treeWidget.blockSignals(oldState)
-		
-	def com_change(self, text):
-		items = self.treeWidget.selectedItems()
-		items[0].command = text
 			
-	def add_group(self, name, desc):
-		itemGroup = QTreeWidgetItem(self.treeWidget)
+	def add_group(self, name, desc, old = False, parent = None):
+		if parent == None:
+			parent = self.treeWidget
+		self.changes()
+		itemGroup = QTreeWidgetItem(parent)
 		itemGroup.setBackground(0, QtGui.QColor(176, 234, 253))
 		itemGroup.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled)
 		itemGroup.isCommand = False
 		itemGroup.setText(0, name)
 		itemGroup.setText(1, desc)
-		self.treeWidget.editItem(itemGroup, 0)
+		if not old:
+			self.treeWidget.editItem(itemGroup, 0)
+		return itemGroup
 	
-	def add_command(self, name, desc):
-		itemCommand = QTreeWidgetItem(self.treeWidget)
+	def add_command(self, name, desc, old = False, parent = None):
+		if parent == None:
+			parent = self.treeWidget
+		self.changes()
+		itemCommand = QTreeWidgetItem(parent)
 		itemCommand.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDragEnabled)
 		itemCommand.isCommand = True
 		itemCommand.filetypes = []
-		itemCommand.command = ""
+		itemCommand.commands = []
+		itemCommand.path = ""
 		itemCommand.commandMode = ComModes.BAT
 		itemCommand.before = None
 		itemCommand.after = None
+		itemCommand.id = uuid.uuid4().int
 		itemCommand.setText(0, name)
 		itemCommand.setText(1, desc)
-		self.treeWidget.setCurrentItem(itemCommand)
-		self.treeWidget.editItem(itemCommand, 0)
+		if not old:
+			self.treeWidget.setCurrentItem(itemCommand)
+			self.treeWidget.editItem(itemCommand, 0)
+		return itemCommand
 	
 	def group_button(self):
 		self.add_group("Group", "Group Description")
@@ -213,6 +311,7 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 		self.add_command("Action", "Action Description")
 		
 	def remove_selection(self):
+		self.changes()
 		items = self.treeWidget.selectedItems()
 		for item in items:
 			(item.parent() or self.treeWidget.invisibleRootItem()).removeChild(item)
@@ -261,13 +360,13 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 			self.label_5.setEnabled(True)
 			self.comboBox.setModel(model)
 			model.appendRow(QtGui.QStandardItem("None"))
-			tree = self.get_full_tree(self.treeWidget)
+			tree = self.get_full_tree(self.treeWidget, False)
 			for item in tree:
 				if item is not items[0]:
 					conflict = self.has_conflict(items[0], item)
 					self.comboBox.addItem(self.item_to_string(item), userData= item if not conflict else None)
 					model.item(self.comboBox.count()-1, 0).setEnabled(not conflict)
-					if item is items[0].after:
+					if item.id == items[0].after:
 						self.comboBox.setCurrentIndex(self.comboBox.count()-1)
 			self.comboBox.blockSignals(oldComboState)
 			self.formLayout.blockSignals(oldState)
@@ -289,40 +388,111 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 		item = self.treeWidget.selectedItems()[0]
 		dialog = CommandDialog(item)
 		dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-		dialog.exec_()
+		if dialog.exec_() == 1:
+			self.changes()
 		self.setEnabled(True)
 		
 	def after_change(self, index):
-		self.treeWidget.selectedItems()[0].after = self.comboBox.currentData()
+		self.changes()
+		self.treeWidget.selectedItems()[0].after = self.comboBox.currentData().id
 		
 	def has_conflict(self, item, checkItem):
-		afterItem = checkItem.after
+		idTree = self.create_id_tree(self.treeWidget)
+		if checkItem.after != None and checkItem.after not in idTree:
+			checkItem.after = None
+		afterItem = idTree[checkItem.after] if checkItem.after != None else None
 		while afterItem != None and afterItem != item:
-			afterItem = afterItem.after
+			if afterItem.after != None and afterItem.after not in idTree:
+				afterItem.after = None
+			afterItem = idTree[afterItem.after] if afterItem.after != None else None
 		if afterItem != None:
 			return True
-			
 		return False
 		
-	def get_full_tree(self, tree):
+	def create_id_tree(self, sec):
+		res  = {}
+		count = 0
+		if type(sec) is QTreeWidget:
+			count = sec.topLevelItemCount()
+		else:
+			count = sec.childCount()
+		for x in range(0, count):
+			item = None
+			if type(sec) is QTreeWidget:
+				item = sec.topLevelItem(x)
+			else:
+				item = sec.child(x)
+			if item.isCommand:
+				res[item.id] = item
+			else:
+				nest = self.create_id_tree(item)
+				res.update(nest)
+		return res
+		
+	def get_full_tree(self, tree, mode):
 		result = []
 		for topIdx in range(0, tree.topLevelItemCount()):
 			top = tree.topLevelItem(topIdx)
 			if top.isCommand:
 				result.append(top)
 			else:
-				result += self.get_sub_tree(top)
+				if mode:
+					result.append({'parent': top})
+					result[len(result)-1]["child"] = self.get_sub_tree(top, mode)
+				else:
+					result += self.get_sub_tree(top, mode)
 		return result
 				
-	def get_sub_tree(self, item):
+	def get_sub_tree(self, item, mode):
 		result = []
 		for childIdx in range(0, item.childCount()):
 			sub = item.child(childIdx)
 			if sub.isCommand:
 				result.append(sub)
 			else:
-				result += self.get_sub_tree(sub)
+				if mode:
+					result.append({'parent': sub})
+					result[len(result)-1]["child"] = self.get_sub_tree(sub, mode)
+				else:
+					result += self.get_sub_tree(sub, mode)
 		return result
+	
+	def get_save_data(self):
+		tree = self.get_full_tree(self.treeWidget, True)
+		return self.tree_to_json(tree)
+		
+	def tree_to_json(self, tree):
+		res = OrderedDict({})
+		for item in tree:
+			if type(item) is QTreeWidgetItem:
+				name = item.text(0) + "-"
+				if type(tree) is QTreeWidgetItem:
+					name += str(tree.indexOfChild(item))
+				elif type(tree) is QTreeWidget:
+					name += str(tree.indexOfTopLevelItem(item))
+				else:
+					name += str(tree.index(item))
+				res[name] = {}
+				res[name]["commandMode"] = item.commandMode
+				res[name]["command"] = item.commands if item.commandMode != ComModes.BAT else item.path
+				res[name]["after"] = item.after
+				res[name]["name"] = item.text(0)
+				res[name]["filetypes"] = item.filetypes
+				res[name]["description"] = item.text(1)
+				res[name]["id"] = item.id
+			else:
+				name = item["parent"].text(0) + "-"
+				if type(tree) is QTreeWidgetItem:
+					name += str(tree.indexOfChild(item["parent"]))
+				elif type(tree) is QTreeWidget:
+					name += str(tree.indexOfTopLevelItem(item["parent"]))
+				else:
+					name += str(tree.index(item))
+				res[name] = {}
+				res[name]["children"] = self.tree_to_json(item["child"])
+				res[name]["name"] = item["parent"].text(0)
+				res[name]["description"] = item["parent"].text(1)
+		return res
 		
 	def item_to_string(self, item):
 		text = item.text(0)
@@ -333,6 +503,7 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 		return text
 		
 	def add_custom_filetype(self):
+		self.changes()
 		if not hasattr(self, "custom"):
 			custom = QTreeWidgetItem(self.treeWidget_2)
 			custom.setText(0, "Custom")
@@ -376,6 +547,8 @@ class CommandDialog(QDialog, command.Ui_Command):
 		self.radio_change(self.action.commandMode == ComModes.BAT)
 		self.command_select()
 		self.path = (self.action.path if hasattr(self.action, "path") else None)
+		for command in self.action.commands:
+			self.add_command(True).setText(command)
 		self.pushButton.clicked.connect(self.get_file)
 		self.pushButton_2.clicked.connect(self.add_command)
 		self.pushButton_3.clicked.connect(self.remove_command)
@@ -410,13 +583,15 @@ class CommandDialog(QDialog, command.Ui_Command):
 		fMetrics = QtGui.QFontMetricsF(QtGui.QFont())
 		self.label.setText(fMetrics.elidedText(self.path, QtCore.Qt.ElideRight, self.label.width() - 15))
 		
-	def add_command(self):
+	def add_command(self, old=False):
 		itemCommand = QListWidgetItem(self.listWidget)
 		itemCommand.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDragEnabled)
 		itemCommand.command = ""
 		itemCommand.setText("<empty>")
-		self.listWidget.setCurrentItem(itemCommand)
-		self.listWidget.editItem(itemCommand)
+		if not old:
+			self.listWidget.setCurrentItem(itemCommand)
+			self.listWidget.editItem(itemCommand)
+		return itemCommand
 		
 	def remove_command(self):
 		for item in self.listWidget.selectedItems():

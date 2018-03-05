@@ -392,49 +392,39 @@ QTreeView::branch:open:has-children:has-siblings  {
      <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFile">
+   <widget class="QMenu" name="menuSave">
     <property name="title">
      <string>File</string>
     </property>
-    <widget class="QMenu" name="menuExport">
-     <property name="title">
-      <string>Export...</string>
-     </property>
-     <addaction name="actionAll"/>
-     <addaction name="actionSelection"/>
-    </widget>
-    <addaction name="actionLoad"/>
-    <addaction name="menuExport"/>
-    <addaction name="actionClear"/>
+    <addaction name="actionSave"/>
+    <addaction name="separator"/>
+    <addaction name="actionImport"/>
+    <addaction name="actionExport"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
-   <addaction name="menuFile"/>
+   <addaction name="separator"/>
+   <addaction name="menuSave"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionLoad">
+  <action name="actionSave">
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </action>
+  <action name="actionImport">
    <property name="text">
     <string>Import</string>
+   </property>
+  </action>
+  <action name="actionExport">
+   <property name="text">
+    <string>Export</string>
    </property>
   </action>
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>
-   </property>
-  </action>
-  <action name="actionAll">
-   <property name="text">
-    <string>All</string>
-   </property>
-  </action>
-  <action name="actionSelection">
-   <property name="text">
-    <string>Selection</string>
-   </property>
-  </action>
-  <action name="actionClear">
-   <property name="text">
-    <string>Clear</string>
    </property>
   </action>
  </widget>
