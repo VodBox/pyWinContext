@@ -413,11 +413,17 @@ QTreeView::branch:open:has-children:has-siblings  {
    </property>
   </action>
   <action name="actionImport">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Import</string>
    </property>
   </action>
   <action name="actionExport">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Export</string>
    </property>

@@ -33,8 +33,6 @@ class LaunchDialog(QDialog, launch_dialog.Ui_Dialog):
 			self.hide()
 			self.win.show()
 		else:
-			import uac_wrapper
-			uac_wrapper.run()
 			self.hide()
 			self.win.show()
 			self.win.direct = True

@@ -25,6 +25,8 @@ configLoc = os.path.expandvars(parser.parse_args().config)
 configPath = Path(configLoc)
 if not configPath.is_dir():
 	os.mkdir(configLoc)
+	
+print(configLoc)
 
 class ComModes:
     BAT, List = range(2)
@@ -165,17 +167,24 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 		
 	def action_save(self):
 		data = self.get_save_data()
+		oldData = None
 		config = Path(configLoc + "\\config.json")
 		configBak = Path(configLoc + "\\config.json.bak")
 		if config.is_file():
+			oldFile = open(configLoc + "\\config.json", 'r')
+			oldData = json.loads(oldFile.read(), object_pairs_hook=OrderedDict)
+			oldFile.close()
 			config.replace(configBak)
 		file = open(configLoc + "\\config.json", 'w')
 		file.write(json.dumps(data, indent=4))
 		file.close()
+		output.configLoc = configLoc
+		output.ComModes = ComModes
+		output.reg_save(data, oldData)
 		#if self.direct:
-		#	output.reg_save(data)
+		#	output.direct_save(data, oldData)
 		#else:
-		#	output.direct_save(data)
+		#	output.reg_save(data, oldData)
 		self.hasChanges = False
 		self.setWindowTitle('pyWinContext')
 		return True

@@ -12,14 +12,16 @@ def run():
 	if is_admin():
 		return True
 	else:
-		ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
+		ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, "", None, 1)
 		sys.exit()
+		
+def run_as_admin(file):
+	ctypes.windll.shell32.ShellExecuteW(None, "open", file, "", None, 1)
 		
 def main():
 	run()
-	import wincontext
-	win = wincontext.main(True)
-	win.activateWindow()
+	import launch
+	win = launch.main()
 	
 if __name__ == '__main__':
 	main()
