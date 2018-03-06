@@ -75,7 +75,7 @@ def create_reg_add(data):
 			result += "[HKEY_CLASSES_ROOT\\SystemFileAssociations\\" + filetype + "\\shell\\pyWin-" + command["regname"] + "]\r\n"
 			result += "@=\"" + command["description"].replace('"', '\\"') + "\"\r\n\r\n"
 			result += "[HKEY_CLASSES_ROOT\\SystemFileAssociations\\" + filetype + "\\shell\\pyWin-" + command["regname"] + "\\command]\r\n"
-			result += "@=\"cmd /c " + configLoc.replace("\\", "\\\\") + "\\\\comStore\\\\" + str(command["id"]) + ".bat \\\"%1\\\"\"\r\n\r\n"
+			result += "@=\"cmd /c " + configLoc.replace("\\", "\\\\") + "\\\\comStore\\\\" + str(command["id"]) + ".bat %1\"\r\n\r\n"
 			create_bat(command)
 		for group in info["groups"]:
 			groupObj = info["groups"][group]
@@ -108,6 +108,7 @@ def data_to_out(data):
 	for key in data:
 		item = data[key]
 		if "command" in item:
+			create_bat(item)
 			for ft in item["filetypes"]:
 				if ft not in res['filetypes']:
 					create_filetype(res, ft)
@@ -161,17 +162,19 @@ def create_group(res, ft, parent, name):
 completed = {}
 	
 def create_bat(command):
-	file = open(configLoc + "\\comStore\\" + str(command["id"]) + ".bat", 'w')
-	batString = "@echo off"
-	if command["commandMode"] == ComModes.BAT:
-		batString += "\r\ncmd /c " + command["command"] + " %1"
-	else:
-		for com in command["command"]:
-			batString += "\r\n" + com
-	if command["after"]:
-		batString += "\r\ncmd /c " + configLoc + "\\comStore\\" + str(command["after"]) + ".bat \\\"%1\\\""
-	file.write(batString)
-	file.close()
+	if command["id"] not in completed:
+		completed[command["id"]] = True
+		file = open(configLoc + "\\comStore\\" + str(command["id"]) + ".bat", 'w')
+		batString = "@echo off"
+		if command["commandMode"] == ComModes.BAT:
+			batString += "\r\ncmd /c " + command["command"] + " %1"
+		else:
+			for com in command["command"]:
+				batString += "\r\n" + com
+		if command["after"]:
+			batString += "\r\ncmd /c " + configLoc + "\\comStore\\" + str(command["after"]) + ".bat %1"
+		file.write(batString)
+		file.close()
 	
 def create_sub_commands(filetype, data, key, outData):
 	result = "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CommandStore\\shell\\pyWin-" + filetype + "-" + key + "]\r\n"
