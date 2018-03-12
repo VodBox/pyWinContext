@@ -132,6 +132,8 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 		self.lineEdit_4.textChanged.connect(self.search_change)
 		self.pushButton_2.clicked.connect(self.group_button)
 		self.pushButton_3.clicked.connect(self.action_button)
+		self.pushButton_4.clicked.connect(self.icon_button)
+		self.pushButton_5.clicked.connect(self.clear_button)
 		self.pushButton_6.clicked.connect(self.open_command)
 		self.pushButton_7.clicked.connect(self.remove_selection)
 		self.treeWidget.itemSelectionChanged.connect(self.action_select)
@@ -161,8 +163,14 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 				com.filetypes = item["filetypes"]
 				com.after = item["after"]
 				com.id = item["id"]
+				if "icon_path" in item:
+					com.icon_path = item["icon_path"]
+					com.setIcon(0, QtGui.QIcon(item["icon_path"]))
 			else:
 				group = self.add_group(item["name"], item["description"], True, parent)
+				if "icon_path" in item:
+					group.icon_path = item["icon_path"]
+					group.setIcon(0, QtGui.QIcon(item["icon_path"]))
 				self.create_items(item["children"], group)
 		
 	def action_save(self):
@@ -286,6 +294,7 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 		itemGroup.setBackground(0, QtGui.QColor(176, 234, 253))
 		itemGroup.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled)
 		itemGroup.isCommand = False
+		itemGroup.icon_path = None
 		itemGroup.setText(0, name)
 		itemGroup.setText(1, desc)
 		if not old:
@@ -306,6 +315,7 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 		itemCommand.before = None
 		itemCommand.after = None
 		itemCommand.id = uuid.uuid4().int
+		itemCommand.icon_path = None
 		itemCommand.setText(0, name)
 		itemCommand.setText(1, desc)
 		if not old:
@@ -318,6 +328,22 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 		
 	def action_button(self):
 		self.add_command("Action", "Action Description")
+		
+	def icon_button(self):
+		self.changes()
+		file = QFileDialog()
+		file.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+		file.setFileMode(QFileDialog.ExistingFile)
+		img = file.getOpenFileUrl(filter="Image File (*.png *.jpg *.gif *.bmp)")[0].toLocalFile()
+		self.treeWidget.selectedItems()[0].setIcon(0, QtGui.QIcon(img))
+		self.treeWidget.selectedItems()[0].icon_path = img
+		self.pushButton_5.setEnabled(True)
+		
+	def clear_button(self):
+		self.changes()
+		self.treeWidget.selectedItems()[0].setIcon(0, QtGui.QIcon())
+		self.treeWidget.selectedItems()[0].icon_path = None
+		self.pushButton_5.setEnabled(False)
 		
 	def remove_selection(self):
 		self.changes()
@@ -352,6 +378,10 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 		for topIdx in range(0, self.treeWidget_2.topLevelItemCount()):
 			self.treeWidget_2.topLevelItem(topIdx).child(0).emitDataChanged()
 		if selected == 1 and items[0].isCommand:
+			if items[0].icon_path != None:
+				self.pushButton_5.setEnabled(True)
+			else:
+				self.pushButton_5.setEnabled(False)
 			self.treeWidget_2.setDisabled(False)
 			oldState = self.formLayout.blockSignals(True)
 			self.label.setEnabled(True)
@@ -361,6 +391,8 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 			self.lineEdit_2.setEnabled(True)
 			self.lineEdit_2.setText(items[0].text(1))
 			self.label_3.setEnabled(True)
+			self.label_6.setEnabled(True)
+			self.pushButton_4.setEnabled(True)
 			self.pushButton_6.setEnabled(True)
 			oldComboState = self.comboBox.blockSignals(True)
 			self.comboBox.clear()
@@ -382,11 +414,28 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 		else:
 			disable = True if selected == 0 or not containsCommand else False
 			self.treeWidget_2.setDisabled(disable)
-			self.label.setEnabled(False)
-			self.lineEdit.setEnabled(False)
-			self.label_2.setEnabled(False)
-			self.lineEdit_2.setEnabled(False)
 			self.label_3.setEnabled(False)
+			if selected == 1:
+				self.label.setEnabled(True)
+				self.lineEdit.setEnabled(True)
+				self.lineEdit.setText(items[0].text(0))
+				self.label_2.setEnabled(True)
+				self.lineEdit_2.setEnabled(True)
+				self.lineEdit_2.setText(items[0].text(1))
+				self.label_6.setEnabled(True)
+				self.pushButton_4.setEnabled(True)
+				if items[0].icon_path != None:
+					self.pushButton_5.setEnabled(True)
+				else:
+					self.pushButton_5.setEnabled(False)
+			else:
+				self.pushButton_5.setEnabled(False)
+				self.label.setEnabled(False)
+				self.lineEdit.setEnabled(False)
+				self.label_2.setEnabled(False)
+				self.lineEdit_2.setEnabled(False)
+				self.label_6.setEnabled(False)
+				self.pushButton_4.setEnabled(False)
 			self.pushButton_6.setEnabled(False)
 			self.comboBox.setEnabled(False)
 			self.label_5.setEnabled(False)
@@ -489,6 +538,7 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 				res[name]["filetypes"] = item.filetypes
 				res[name]["description"] = item.text(1)
 				res[name]["id"] = item.id
+				res[name]["icon_path"] = item.icon_path
 			else:
 				name = item["parent"].text(0) + "-"
 				if type(tree) is QTreeWidgetItem:
@@ -501,6 +551,7 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 				res[name]["children"] = self.tree_to_json(item["child"])
 				res[name]["name"] = item["parent"].text(0)
 				res[name]["description"] = item["parent"].text(1)
+				res[name]["icon_path"] = item["parent"].icon_path
 		return res
 		
 	def item_to_string(self, item):

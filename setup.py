@@ -12,7 +12,7 @@ if sys.platform == "win32":
 
 setup(  name = "pyWinContext",
 		targetName = "pyWinContext",
-        version = "0.1",
+        version = "0.1.1",
         description = "Manager for Context Menu commands in Windows",
         options = {"build_exe": build_exe_options},
-        executables = [Executable("uac_wrapper.pyw", base=base)])
+        executables = [Executable("uac_wrapper.pyw", base=base, targetName="pyWinContext.exe")])

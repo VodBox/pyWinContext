@@ -7,6 +7,7 @@ import uac_wrapper
 from collections import OrderedDict
 from pathlib import Path
 from time import sleep
+from PIL import Image
 
 configLoc = os.path.expandvars("%appdata%\\pyWinContext")
 ComModes = None
@@ -20,6 +21,9 @@ def reg_save(data, oldData):
 	runPath = Path(configLoc + "\\run")
 	if not runPath.is_dir():
 		os.mkdir(configLoc + "\\run")
+	iconPath = Path(configLoc + "\\iconStore")
+	if not iconPath.is_dir():
+		os.mkdir(configLoc + "\\iconStore")
 	outData = data_to_out(data)
 	#print(json.dumps(outData))#, indent=2))
 	if oldData != None:
@@ -75,7 +79,11 @@ def create_reg_add(data):
 			result += "[HKEY_CLASSES_ROOT\\SystemFileAssociations\\" + filetype + "\\shell\\pyWin-" + command["regname"] + "]\r\n"
 			result += "@=\"" + command["description"].replace('"', '\\"') + "\"\r\n\r\n"
 			result += "[HKEY_CLASSES_ROOT\\SystemFileAssociations\\" + filetype + "\\shell\\pyWin-" + command["regname"] + "\\command]\r\n"
-			result += "@=\"cmd /c " + configLoc.replace("\\", "\\\\") + "\\\\comStore\\\\" + str(command["id"]) + ".bat %1\"\r\n\r\n"
+			result += "@=\"cmd /c " + configLoc.replace("\\", "\\\\") + "\\\\comStore\\\\" + str(command["id"]) + ".bat %1\"\r\n"
+			if "icon_path" in command and command["icon_path"] != None:
+				create_icon(command["icon_path"], command["id"])
+				result += "\"Icon\"=\"" + configLoc.replace("\\", "\\\\") + "\\\\iconStore\\\\" + str(command["id"]) + ".ico,0\"\r\n"
+			result += "\r\n"
 			create_bat(command)
 		for group in info["groups"]:
 			groupObj = info["groups"][group]
@@ -92,12 +100,20 @@ def create_reg_add(data):
 					for key in com:
 						coms += "pyWin-" + filetype + "-" + key
 						newSub += create_sub_commands(filetype, com[key], key, outData)
-			result += "\"SubCommands\"=\"" + coms + "\"\r\n\r\n"
+			result += "\"SubCommands\"=\"" + coms + "\"\r\n"
+			if "icon_path" in groupObj and groupObj["icon_path"] != None:
+				create_icon(groupObj["icon_path"], group)
+				result += "\"Icon\"=\"" + configLoc.replace("\\", "\\\\") + "\\\\iconStore\\\\" + group + ".ico,0\"\r\n"
+			result += "\r\n"
 			result += newSub
 	for command in outData["commandStore"]:
 		com = outData["commandStore"][command]
 		result += "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CommandStore\\shell\\pyWin-" + com["regname"] + "]\r\n"
-		result += "@=\"" + com["description"] + "\"\r\n\r\n"
+		result += "@=\"" + com["description"] + "\"\r\n"
+		if "icon_path" in com and com["icon_path"] != None:
+				create_icon(com["icon_path"], com["id"])
+				result += "\"Icon\"=\"" + configLoc.replace("\\", "\\\\") + "\\\\iconStore\\\\" + str(com["id"]) + ".ico,0\"\r\n"
+		result += "\r\n"
 		result += "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CommandStore\\shell\\pyWin-" + com["regname"] + "\\command]\r\n"
 		result += "@=\"cmd /c " + configLoc.replace("\\", "\\\\") + "\\\\comStore\\\\" + str(com["id"]) + ".bat \\\"%1\\\"\"\r\n\r\n"
 		create_bat(com)
@@ -126,7 +142,7 @@ def data_out_nest(res, data, parent):
 				if ft not in res['filetypes']:
 					create_filetype(res, ft)
 				if parent not in res['filetypes'][ft]['groups']:
-					create_group(res, ft, parent, data["description"])
+					create_group(res, ft, parent, data["description"], data["icon_path"])
 				res["commandStore"][item['id']] = item
 				res["commandStore"][item['id']]['regname'] = parent + '-' + key
 				res['filetypes'][ft]['groups'][parent]['coms'].append(item['id'])
@@ -140,7 +156,7 @@ def data_out_nest(res, data, parent):
 				if ft not in res["filetypes"]:
 					create_filetype(res, ft)
 				if parent not in res['filetypes'][ft]['groups']:
-					create_group(res, ft, parent, data["description"])
+					create_group(res, ft, parent, data["description"], data["icon_path"])
 				for group in temp['filetypes'][ft]['groups']:
 					res['filetypes'][ft]['groups'][parent]['coms'].append(dict([(group, temp['filetypes'][ft]['groups'][group])]))
 					
@@ -155,15 +171,16 @@ def create_filetype(res, ft):
 	res['filetypes'][ft]['commands'] = []
 	res['filetypes'][ft]['groups'] = {}
 	
-def create_group(res, ft, parent, name):
-	res['filetypes'][ft]['groups'][parent] = {'name': name}
+def create_group(res, ft, parent, name, icon_path):
+	res['filetypes'][ft]['groups'][parent] = {'name': name, 'icon_path': icon_path}
 	res['filetypes'][ft]['groups'][parent]['coms'] = []
 	
-completed = {}
+completedBat = {}
+completedIcon = {}
 	
 def create_bat(command):
-	if command["id"] not in completed:
-		completed[command["id"]] = True
+	if command["id"] not in completedBat:
+		completedBat[command["id"]] = True
 		file = open(configLoc + "\\comStore\\" + str(command["id"]) + ".bat", 'w')
 		batString = "@echo off"
 		if command["commandMode"] == ComModes.BAT:
@@ -175,6 +192,13 @@ def create_bat(command):
 			batString += "\r\ncmd /c " + configLoc + "\\comStore\\" + str(command["after"]) + ".bat %1"
 		file.write(batString)
 		file.close()
+		
+def create_icon(icon_path, id):
+	if id not in completedIcon:
+		img = Image.open(icon_path)
+		icon_sizes = [(16,16), (32, 32), (48, 48), (64,64)]
+		img.save(configLoc + "\\iconStore\\" + str(id) + ".ico", sizes=icon_sizes)
+		
 	
 def create_sub_commands(filetype, data, key, outData):
 	result = "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CommandStore\\shell\\pyWin-" + filetype + "-" + key + "]\r\n"
