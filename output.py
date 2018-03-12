@@ -195,10 +195,17 @@ def create_bat(command):
 		
 def create_icon(icon_path, id):
 	if id not in completedIcon:
+		completedIcon[id] = True
 		img = Image.open(icon_path)
 		icon_sizes = [(16,16), (32, 32), (48, 48), (64,64)]
-		img.save(configLoc + "\\iconStore\\" + str(id) + ".ico", sizes=icon_sizes)
+		make_square(img).save(configLoc + "\\iconStore\\" + str(id) + ".ico", sizes=icon_sizes)
 		
+def make_square(im, min_size=72, fill_color=(0, 0, 0, 0)):
+    x, y = im.size
+    size = max(min_size, x, y)
+    new_im = Image.new('RGBA', (size, size), fill_color)
+    new_im.paste(im, ((size - x) // 2, (size - y) // 2))
+    return new_im
 	
 def create_sub_commands(filetype, data, key, outData):
 	result = "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CommandStore\\shell\\pyWin-" + filetype + "-" + key + "]\r\n"
