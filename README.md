@@ -7,6 +7,7 @@ over what filetypes to provide commands to, the text and icons they show with
 and the tasks that get performed on the input files.
 
 ![Example Configuration](https://i.imgur.com/q9oPy1d.png)
+![Working Example](https://i.imgur.com/feGaCrh.png)
 
 ## Table of Contents
 
