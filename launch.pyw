@@ -1,6 +1,6 @@
 #! /usr/bin/python3
 
-import launch_dialog
+from UI import launch_dialog
 import sys, ctypes
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import QDialog, QApplication

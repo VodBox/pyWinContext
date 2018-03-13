@@ -34,8 +34,7 @@ class ComModes:
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import *
-import app
-import command
+from UI import app,  command
 
 import output
 
