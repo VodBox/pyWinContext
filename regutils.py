@@ -1,40 +1,46 @@
 import winreg
+import time
 
-def create_sub_command(name, desc, command):
-	key = winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CommandStore\\shell\\" + name)
-	winreg.SetValue(key, "", winreg.REG_SZ, desc)
-	comKey = winreg.CreateKey(key, "command")
-	winreg.SetValue(comKey, "", winreg.REG_SZ, command)
+def create_sub_command(name, desc, command, icon):
+	hkey = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,'Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CommandStore\\shell',0,winreg.KEY_ALL_ACCESS|winreg.KEY_WOW64_64KEY)
+	key = winreg.CreateKey(hkey, name)
+	winreg.SetValueEx(key, "", 0, winreg.REG_SZ, desc)
+	winreg.SetValue(key, "command", winreg.REG_SZ, command)
+	if icon != None:
+		winreg.SetValueEx(key, "Icon", 0, winreg.REG_SZ, icon)
+	else:
+		winreg.SetValueEx(key, "Icon", 0, winreg.REG_SZ, "")
+	winreg.SetValueEx(key, "direct", 0, winreg.REG_SZ, "Yes")
 
-def link_sub_command(name, desc, comName, filetype):
-	key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, "SystemFileAssociations\\." + filetype + "\\shell")
+def create_sub_group(name, desc, icon, coms):
+	key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,'Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CommandStore\\shell',0,winreg.KEY_ALL_ACCESS|winreg.KEY_WOW64_64KEY)
 	comKey = winreg.CreateKey(key, name)
 	winreg.SetValueEx(comKey, "MUIVerb", 0, winreg.REG_SZ, desc)
-	subs = ("")
-	try:
-		subs = winreg.QueryValueEx(comKey, "SubCommands")
-	except Exception as e:
-		subs = ("")
-	winreg.SetValueEx(comKey, "SubCommands", 0, winreg.REG_SZ, ((subs[0] + ";") if subs[0] != "" else "") + comName)
+	winreg.SetValueEx(comKey, "SubCommands", 0, winreg.REG_SZ, coms)
+	winreg.SetValueEx(comKey, "Direct", 0, winreg.REG_SZ, "Yes")
+	if icon != None:
+		winreg.SetValueEx(comKey, "Icon", 0, winreg.REG_SZ, icon)
+	else:
+		winreg.SetValueEx(comKey, "Icon", 0, winreg.REG_SZ, "")
 
-def create_command(name, desc, command, filetype):
-	key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, "SystemFileAssociations\\." + filetype + "\\shell")
+def create_group(name, desc, filetype, icon, coms):
+	key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, "SystemFileAssociations\\" + filetype + "\\shell")
+	comKey = winreg.CreateKey(key, name)
+	winreg.SetValueEx(comKey, "MUIVerb", 0, winreg.REG_SZ, desc)
+	winreg.SetValueEx(comKey, "SubCommands", 0, winreg.REG_SZ, coms)
+	if icon != None:
+		winreg.SetValueEx(comKey, "Icon", 0, winreg.REG_SZ, icon)
+	else:
+		winreg.SetValueEx(comKey, "Icon", 0, winreg.REG_SZ, "")
+
+def create_command(name, desc, command, filetype, icon):
+	key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, "SystemFileAssociations\\" + filetype + "\\shell")
 	comKey = winreg.CreateKey(key, name)
 	winreg.SetValue(key, name, winreg.REG_SZ, desc)
+	if icon != None:
+		winreg.SetValue(comKey, "Icon", winreg.REG_SZ, icon)
 	winreg.CreateKey(comKey, "command")
 	winreg.SetValue(comKey, "command", winreg.REG_SZ, command)
-
-def get_sub_command_string(filetype, name):
-	key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, "SystemFileAssociations\\." + filetype + "\\shell\\" + name)
-	try:
-		subs = winreg.QueryValueEx(key, "SubCommands")
-		return subs[0]
-	except Exception as e:
-		return ""
-
-def get_sub_commands(filetype, name):
-	subs = get_sub_command_string(filetype, name)
-	return subs.split(";")
 
 def get_file_types():
 	keys = {}
@@ -53,3 +59,27 @@ def get_file_types():
 			except Exception as e:
 				pass
 	return keys
+
+def remove_file_association(filetype, name):
+	key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, "SystemFileAssociations\\" + filetype + "\\shell")
+	comKey = winreg.CreateKey(key, name)
+	remove_all_sub_keys(comKey)
+	winreg.DeleteKey(key, name)
+
+def remove_command_store(name):
+	key = winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CommandStore\\shell")
+	comKey = winreg.CreateKey(key, name)
+	remove_all_sub_keys(comKey)
+	winreg.DeleteKey(key, name)
+
+def remove_all_sub_keys(key):
+	index = 0
+	length = winreg.QueryInfoKey(key)[0]
+	for i in range(0, length):
+		try:
+			subname = winreg.EnumKey(key, i)
+			subkey = winreg.CreateKey(key, subname)
+			remove_all_sub_keys(subkey)
+			winreg.DeleteKey(key, subname)
+		except OSError as e:
+			pass

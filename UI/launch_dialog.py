@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'launch_dialog.ui'
 #
-# Created by: PyQt5 UI code generator 5.10
+# Created by: PyQt5 UI code generator 5.10.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -47,12 +47,12 @@ class Ui_Dialog(object):
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.radioButton_2 = QtWidgets.QRadioButton(Dialog)
-        self.radioButton_2.setEnabled(False)
+        self.radioButton_2.setEnabled(True)
         self.radioButton_2.setMaximumSize(QtCore.QSize(85, 16777215))
         self.radioButton_2.setObjectName("radioButton_2")
         self.horizontalLayout_2.addWidget(self.radioButton_2)
         self.label_2 = QtWidgets.QLabel(Dialog)
-        self.label_2.setEnabled(False)
+        self.label_2.setEnabled(True)
         self.label_2.setMinimumSize(QtCore.QSize(0, 60))
         self.label_2.setMaximumSize(QtCore.QSize(16777215, 240))
         self.label_2.setScaledContents(False)

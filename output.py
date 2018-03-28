@@ -1,4 +1,4 @@
-import regutils
+import regutils as reg
 import json
 import os
 import sys
@@ -13,6 +13,9 @@ configLoc = os.path.expandvars("%appdata%\\pyWinContext")
 ComModes = None
 
 def reg_save(data, oldData):
+	global completedBat, completedIcon
+	completedBat = {}
+	completedIcon = {}
 	global completed
 	completed = {}
 	comStorePath = Path(configLoc + "\\comStore")
@@ -52,9 +55,13 @@ def reg_save(data, oldData):
 	subprocess.Popen(["explorer", "/select," + configLoc + "\\run\\Setup.reg"])
 
 def direct_save(data, oldData):
+	global completedBat, completedIcon
+	completedBat = {}
+	completedIcon = {}
 	outData = data_to_out(data)
 	if oldData != None:
 		direct_clear(oldData)
+	direct_add(data)
 	
 def create_reg_clear(data):
 	result = ""
@@ -62,12 +69,26 @@ def create_reg_clear(data):
 	for filetype in outData["filetypes"]:
 		info = outData["filetypes"][filetype]
 		for command in info["commands"]:
-			result += "[-HKEY_CLASSES_ROOT\\SystemFileAssociations\\" + filetype + "\\shell\\pyWin-" + command["regname"] + "]\r\n\r\n"
+			result += "[-HKEY_CLASSES_ROOT\\SystemFileAssociations\\" + filetype + "\\shell\\pyWin" + command["regname"] + "]\r\n\r\n"
 		for group in info["groups"]:
-			result += "[-HKEY_CLASSES_ROOT\\SystemFileAssociations\\" + filetype + "\\shell\\pyWin-" + group + "]\r\n\r\n"
+			result += "[-HKEY_CLASSES_ROOT\\SystemFileAssociations\\" + filetype + "\\shell\\pyWin" + group + "]\r\n\r\n"
 	for command in outData["commandStore"]:
-		result += "[-HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CommandStore\\shell\\pyWin-" + outData["commandStore"][command]["regname"] + "]\r\n\r\n"
+		result += "[-HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CommandStore\\shell\\pyWin" + outData["commandStore"][command]["regname"] + "]\r\n\r\n"
 	return result
+	
+def direct_clear(data):
+	outData = data_to_out(data)
+	for filetype in outData["filetypes"]:
+		info = outData["filetypes"][filetype]
+		for command in info["commands"]:
+			reg.remove_file_association(filetype, "pyWin" + command["regname"])
+			# result += "[-HKEY_CLASSES_ROOT\\SystemFileAssociations\\" + filetype + "\\shell\\pyWin-" + command["regname"] + "]\r\n\r\n"
+		for group in info["groups"]:
+			reg.remove_file_association(filetype, "pyWin" + group)
+			# result += "[-HKEY_CLASSES_ROOT\\SystemFileAssociations\\" + filetype + "\\shell\\pyWin-" + group + "]\r\n\r\n"
+	for command in outData["commandStore"]:
+		reg.remove_command_store("pyWin" + outData["commandStore"][command]["regname"])
+		# result += "[-HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CommandStore\\shell\\pyWin-" + outData["commandStore"][command]["regname"] + "]\r\n\r\n"
 	
 def create_reg_add(data):
 	result = ""
@@ -76,9 +97,9 @@ def create_reg_add(data):
 		result += "[HKEY_CLASSES_ROOT\\SystemFileAssociations\\" + filetype + "\\shell]\r\n\r\n"
 		info = outData["filetypes"][filetype]
 		for command in info["commands"]:
-			result += "[HKEY_CLASSES_ROOT\\SystemFileAssociations\\" + filetype + "\\shell\\pyWin-" + command["regname"] + "]\r\n"
+			result += "[HKEY_CLASSES_ROOT\\SystemFileAssociations\\" + filetype + "\\shell\\pyWin" + command["regname"] + "]\r\n"
 			result += "@=\"" + command["description"].replace('"', '\\"') + "\"\r\n\r\n"
-			result += "[HKEY_CLASSES_ROOT\\SystemFileAssociations\\" + filetype + "\\shell\\pyWin-" + command["regname"] + "\\command]\r\n"
+			result += "[HKEY_CLASSES_ROOT\\SystemFileAssociations\\" + filetype + "\\shell\\pyWin" + command["regname"] + "\\command]\r\n"
 			result += "@=\"cmd /c " + configLoc.replace("\\", "\\\\") + "\\\\comStore\\\\" + str(command["id"]) + ".bat %1\"\r\n"
 			if "icon_path" in command and command["icon_path"] != None:
 				create_icon(command["icon_path"], command["id"])
@@ -87,7 +108,7 @@ def create_reg_add(data):
 			create_bat(command)
 		for group in info["groups"]:
 			groupObj = info["groups"][group]
-			result += "[HKEY_CLASSES_ROOT\\SystemFileAssociations\\" + filetype + "\\shell\\pyWin-" + group + "]\r\n"
+			result += "[HKEY_CLASSES_ROOT\\SystemFileAssociations\\" + filetype + "\\shell\\pyWin" + group + "]\r\n"
 			result += "\"MUIVerb\"=\"" + groupObj["name"] + "\"\r\n"
 			coms = ""
 			newSub = ""
@@ -95,10 +116,10 @@ def create_reg_add(data):
 				if coms != "":
 					coms += ";"
 				if type(com) is int:
-					coms += "pyWin-" + outData["commandStore"][com]["regname"]
+					coms += "pyWin" + outData["commandStore"][com]["regname"]
 				else:
 					for key in com:
-						coms += "pyWin-" + filetype + "-" + key
+						coms += "pyWin" + filetype + "-" + key
 						newSub += create_sub_commands(filetype, com[key], key, outData)
 			result += "\"SubCommands\"=\"" + coms + "\"\r\n"
 			if "icon_path" in groupObj and groupObj["icon_path"] != None:
@@ -108,16 +129,75 @@ def create_reg_add(data):
 			result += newSub
 	for command in outData["commandStore"]:
 		com = outData["commandStore"][command]
-		result += "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CommandStore\\shell\\pyWin-" + com["regname"] + "]\r\n"
+		result += "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CommandStore\\shell\\pyWin" + com["regname"] + "]\r\n"
 		result += "@=\"" + com["description"] + "\"\r\n"
 		if "icon_path" in com and com["icon_path"] != None:
 				create_icon(com["icon_path"], com["id"])
 				result += "\"Icon\"=\"" + configLoc.replace("\\", "\\\\") + "\\\\iconStore\\\\" + str(com["id"]) + ".ico,0\"\r\n"
 		result += "\r\n"
-		result += "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CommandStore\\shell\\pyWin-" + com["regname"] + "\\command]\r\n"
+		result += "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CommandStore\\shell\\pyWin" + com["regname"] + "\\command]\r\n"
 		result += "@=\"cmd /c " + configLoc.replace("\\", "\\\\") + "\\\\comStore\\\\" + str(com["id"]) + ".bat \\\"%1\\\"\"\r\n\r\n"
 		create_bat(com)
 	return result
+	
+def direct_add(data):
+	outData = data_to_out(data)
+	for filetype in outData["filetypes"]:
+		#result += "[HKEY_CLASSES_ROOT\\SystemFileAssociations\\" + filetype + "\\shell]\r\n\r\n"
+		info = outData["filetypes"][filetype]
+		for command in info["commands"]:
+			iconPath = None
+			if "icon_path" in command and command["icon_path"] != None:
+				create_icon(command["icon_path"], command["id"])
+				iconPath = configLoc + "\\iconStore\\" + str(command["id"]) + ".ico,0"
+			reg.create_command("pyWin" + command["regname"], command["description"], 
+				"cmd /c " + configLoc + "\\comStore\\" + str(command["id"]) + ".bat %1",
+				filetype, iconPath)
+			#result += "[HKEY_CLASSES_ROOT\\SystemFileAssociations\\" + filetype + "\\shell\\pyWin-" + command["regname"] + "]\r\n"
+			#result += "@=\"" + command["description"].replace('"', '\\"') + "\"\r\n\r\n"
+			#result += "[HKEY_CLASSES_ROOT\\SystemFileAssociations\\" + filetype + "\\shell\\pyWin-" + command["regname"] + "\\command]\r\n"
+			#result += "@=\"cmd /c " + configLoc.replace("\\", "\\\\") + "\\\\comStore\\\\" + str(command["id"]) + ".bat %1\"\r\n"
+			#if "icon_path" in command and command["icon_path"] != None:
+			#	create_icon(command["icon_path"], command["id"])
+			#	result += "\"Icon\"=\"" + configLoc.replace("\\", "\\\\") + "\\\\iconStore\\\\" + str(command["id"]) + ".ico,0\"\r\n"
+			#result += "\r\n"
+			create_bat(command)
+		for group in info["groups"]:
+			groupObj = info["groups"][group]
+			iconPath = None
+			if "icon_path" in groupObj and groupObj["icon_path"] != None:
+				create_icon(groupObj["icon_path"], group)
+				iconPath = configLoc + "\\iconStore\\" + group + ".ico,0"
+			coms = ""
+			for com in groupObj["coms"]:
+				if coms != "":
+					coms += ";"
+				if type(com) is int:
+					coms += "pyWin" + outData["commandStore"][com]["regname"]
+				else:
+					for key in com:
+						coms += "pyWin" + filetype + "-" + key
+						direct_sub(filetype, com[key], key, outData)
+			reg.create_group("pyWin" + group, groupObj["name"], filetype, iconPath, coms)
+			#result += "[HKEY_CLASSES_ROOT\\SystemFileAssociations\\" + filetype + "\\shell\\pyWin-" + group + "]\r\n"
+			#result += "\"MUIVerb\"=\"" + groupObj["name"] + "\"\r\n"
+			#result += "\"SubCommands\"=\"" + coms + "\"\r\n"
+			#result += "\r\n"
+			#result += newSub
+	for command in outData["commandStore"]:
+		com = outData["commandStore"][command]
+		#result += "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CommandStore\\shell\\pyWin-" + com["regname"] + "]\r\n"
+		#result += "@=\"" + com["description"] + "\"\r\n"
+		iconPath = None
+		if "icon_path" in com and com["icon_path"] != None:
+			create_icon(com["icon_path"], com["id"])
+			iconPath = configLoc+ "\\iconStore\\" + str(com["id"]) + ".ico,0"
+		reg.create_sub_command("pyWin" + com["regname"], com["description"],
+			"cmd /c " + configLoc + "\\comStore\\" + str(com["id"]) + ".bat \"%1\"", iconPath)
+		#result += "\r\n"
+		#result += "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CommandStore\\shell\\pyWin-" + com["regname"] + "\\command]\r\n"
+		#result += "@=\"cmd /c " + configLoc.replace("\\", "\\\\") + "\\\\comStore\\\\" + str(com["id"]) + ".bat \\\"%1\\\"\"\r\n\r\n"
+		create_bat(com)
 	
 def data_to_out(data):
 	res = create_db()
@@ -208,7 +288,7 @@ def make_square(im, min_size=72, fill_color=(0, 0, 0, 0)):
     return new_im
 	
 def create_sub_commands(filetype, data, key, outData):
-	result = "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CommandStore\\shell\\pyWin-" + filetype + "-" + key + "]\r\n"
+	result = "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CommandStore\\shell\\pyWin" + filetype + "-" + key + "]\r\n"
 	result += "\"MUIVerb\"=\"" + data["name"] + "\"\r\n"
 	coms = ""
 	newSub = ""
@@ -216,18 +296,34 @@ def create_sub_commands(filetype, data, key, outData):
 		if coms != "":
 			coms += ";"
 		if type(com) is int:
-			coms += "pyWin-" + outData["commandStore"][com]["regname"]
+			coms += "pyWin" + outData["commandStore"][com]["regname"]
 		else:
-			for key in com:
-				coms += "pyWin-" + filetype + "-" + com[key]["name"]
+			for subkey in com:
+				coms += "pyWin" + filetype + "-" + com[key]["name"]
 				newSub += create_sub_commands(filetype, com[key], key, outData)
 	result += "\"SubCommands\"=\"" + coms + "\"\r\n\r\n"
+	if "icon_path" in data and data["icon_path"] != None and data["icon_path"] != "":
+		create_icon(data["icon_path"], data["name"])
+		result += "\"Icon\"=\"" + configLoc.replace("\\", "\\\\") + "\\\\iconStore\\\\" + data["name"] + ".ico,0\"\r\n"
 	result += newSub
 	return result
 	
-
-def direct_clear(data):
-	pass
+def direct_sub(filetype, data, key, outData):
+	coms = ""
+	for com in data["coms"]:
+		if coms != "":
+			coms += ";"
+		if type(com) is int:
+			coms += "pyWin" + outData["commandStore"][com]["regname"]
+		else:
+			for subkey in com:
+				coms += "pyWin" + filetype + "-" + subkey
+				direct_sub(filetype, com[subkey], subkey, outData)
+	iconPath = None
+	if "icon_path" in data and data["icon_path"] != None and data["icon_path"] != "":
+		create_icon(data["icon_path"], data["name"])
+		iconPath = configLoc + "\\iconStore\\" + data["name"] + ".ico,0"
+	reg.create_sub_group("pyWin" + filetype + "-" + key, data["name"], iconPath, coms)
 	
 def main():
 	file = open("C:\\Users\\Dillon\\AppData\\Roaming\\pyWinContext\\config.json", 'r')

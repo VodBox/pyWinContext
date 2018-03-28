@@ -187,11 +187,11 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 		file.close()
 		output.configLoc = configLoc
 		output.ComModes = ComModes
-		output.reg_save(data, oldData)
-		#if self.direct:
-		#	output.direct_save(data, oldData)
-		#else:
-		#	output.reg_save(data, oldData)
+		#output.reg_save(data, oldData)
+		if self.direct:
+			output.direct_save(data, oldData)
+		else:
+			output.reg_save(data, oldData)
 		self.hasChanges = False
 		self.setWindowTitle('pyWinContext')
 		return True
