@@ -24,12 +24,12 @@ pre-built releases available at the link below.
 
 [pyWinContext Releases](https://github.com/VodBox/pyWinContext/releases)
 
-If you're installing from source, you will need to have the PyQt5 package (and
-cx_Freeze if you wish to build an exe) available on your system. They can
-easily be installed using pip.
+If you're installing from source, you will need to have the PyQt5 and Pillow
+packages (and cx_Freeze if you wish to build an exe) available on your system.
+They can easily be installed using pip.
 
 ```batch
-pip3 install pyqt5 cx_Freeze
+pip3 install pyqt5 pillow cx_Freeze
 ```
 
 From there, you can run the application by launching launch.pyw as admin, or
