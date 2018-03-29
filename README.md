@@ -13,9 +13,9 @@ and the tasks that get performed on the input files.
 
 1. [Installation](#installation)
 2. [Command Line Options](#command-line-options)
-  1. [Configuration Location](#configuration-location)
+    1. [Configuration Location](#configuration-location)
 3. [Tutorial](#tutorial)
-  1. [Basic Tutorial](#basic-tutorial)
+    1. [Basic Tutorial](#basic-tutorial)
 4. [License](#license)
 
 ## Installation
