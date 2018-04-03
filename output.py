@@ -58,6 +58,17 @@ def direct_save(data, oldData):
 	global completedBat, completedIcon
 	completedBat = {}
 	completedIcon = {}
+	global completed
+	completed = {}
+	comStorePath = Path(configLoc + "\\comStore")
+	if not comStorePath.is_dir():
+		os.mkdir(configLoc + "\\comStore")
+	runPath = Path(configLoc + "\\run")
+	if not runPath.is_dir():
+		os.mkdir(configLoc + "\\run")
+	iconPath = Path(configLoc + "\\iconStore")
+	if not iconPath.is_dir():
+		os.mkdir(configLoc + "\\iconStore")
 	outData = data_to_out(data)
 	if oldData != None:
 		direct_clear(oldData)
