@@ -222,7 +222,7 @@ def data_out_nest(res, data, parent):
 				if ft not in res['filetypes']:
 					create_filetype(res, ft)
 				if parent not in res['filetypes'][ft]['groups']:
-					create_group(res, ft, parent, data["description"], data["icon_path"])
+					create_group(res, ft, parent, data["description"], data["icon_path"] if "icon_path" in data else None)
 				res["commandStore"][item['id']] = item
 				res["commandStore"][item['id']]['regname'] = parent + '-' + key
 				res['filetypes'][ft]['groups'][parent]['coms'].append(item['id'])
