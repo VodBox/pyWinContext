@@ -70,11 +70,11 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 
 	def initUI(self):
 		app_icon = QtGui.QIcon()
-		app_icon.addFile('images/icon_16.png', QtCore.QSize(16,16))
-		app_icon.addFile('images/icon_24.png', QtCore.QSize(24,24))
-		app_icon.addFile('images/icon_32.png', QtCore.QSize(32,32))
-		app_icon.addFile('images/icon_48.png', QtCore.QSize(48,48))
-		app_icon.addFile('images/icon.png', QtCore.QSize(256,256))
+		app_icon.addFile(sys._MEIPASS+ '/' + 'images/icon_16.png', QtCore.QSize(16,16))
+		app_icon.addFile(sys._MEIPASS+ '/' + 'images/icon_24.png', QtCore.QSize(24,24))
+		app_icon.addFile(sys._MEIPASS+ '/' + 'images/icon_32.png', QtCore.QSize(32,32))
+		app_icon.addFile(sys._MEIPASS+ '/' + 'images/icon_48.png', QtCore.QSize(48,48))
+		app_icon.addFile(sys._MEIPASS+ '/' + 'images/icon.png', QtCore.QSize(256,256))
 		self.setWindowIcon(app_icon)
 		self.actionExit.triggered.connect(self.close)
 		self.actionSave.triggered.connect(self.action_save)
@@ -594,11 +594,11 @@ class CommandDialog(QDialog, command.Ui_Command):
 		
 	def initUI(self):
 		app_icon = QtGui.QIcon()
-		app_icon.addFile('images/icon_16.png', QtCore.QSize(16,16))
-		app_icon.addFile('images/icon_24.png', QtCore.QSize(24,24))
-		app_icon.addFile('images/icon_32.png', QtCore.QSize(32,32))
-		app_icon.addFile('images/icon_48.png', QtCore.QSize(48,48))
-		app_icon.addFile('images/icon.png', QtCore.QSize(256,256))
+		app_icon.addFile(sys._MEIPASS+ '/' + 'images/icon_16.png', QtCore.QSize(16,16))
+		app_icon.addFile(sys._MEIPASS+ '/' + 'images/icon_24.png', QtCore.QSize(24,24))
+		app_icon.addFile(sys._MEIPASS+ '/' + 'images/icon_32.png', QtCore.QSize(32,32))
+		app_icon.addFile(sys._MEIPASS+ '/' + 'images/icon_48.png', QtCore.QSize(48,48))
+		app_icon.addFile(sys._MEIPASS+ '/' + 'images/icon.png', QtCore.QSize(256,256))
 		self.setWindowIcon(app_icon)
 		#self.setWindowFlags(QtCore.Qt.Dialog | QtCore.Qt.CustomizeWindowHint | QtCore.Qt.WindowTitleHint);
 		self.radioButton.toggled.connect(self.radio_change)
