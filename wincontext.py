@@ -38,6 +38,9 @@ from UI import app,  command
 
 import output
 
+if not hasattr(sys, "_MEIPASS"):
+	sys._MEIPASS = "."
+
 class WinContextApp(QMainWindow, app.Ui_MainWindow):
 	def __init__(self, direct):
 		super(self.__class__, self).__init__()
@@ -70,11 +73,11 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 
 	def initUI(self):
 		app_icon = QtGui.QIcon()
-		app_icon.addFile(sys._MEIPASS+ '/' + 'images/icon_16.png', QtCore.QSize(16,16))
-		app_icon.addFile(sys._MEIPASS+ '/' + 'images/icon_24.png', QtCore.QSize(24,24))
-		app_icon.addFile(sys._MEIPASS+ '/' + 'images/icon_32.png', QtCore.QSize(32,32))
-		app_icon.addFile(sys._MEIPASS+ '/' + 'images/icon_48.png', QtCore.QSize(48,48))
-		app_icon.addFile(sys._MEIPASS+ '/' + 'images/icon.png', QtCore.QSize(256,256))
+		app_icon.addFile(sys._MEIPASS + '/' + 'images/icon_16.png', QtCore.QSize(16,16))
+		app_icon.addFile(sys._MEIPASS + '/' + 'images/icon_24.png', QtCore.QSize(24,24))
+		app_icon.addFile(sys._MEIPASS + '/' + 'images/icon_32.png', QtCore.QSize(32,32))
+		app_icon.addFile(sys._MEIPASS + '/' + 'images/icon_48.png', QtCore.QSize(48,48))
+		app_icon.addFile(sys._MEIPASS + '/' + 'images/icon.png', QtCore.QSize(256,256))
 		self.setWindowIcon(app_icon)
 		self.actionExit.triggered.connect(self.close)
 		self.actionSave.triggered.connect(self.action_save)

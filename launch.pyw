@@ -8,6 +8,9 @@ from PyQt5.QtWidgets import QDialog, QApplication
 myappid = 'VodBox.pyWinContext.1.0' # arbitrary string
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
+if not hasattr(sys, "_MEIPASS"):
+	sys._MEIPASS = "."
+
 class LaunchDialog(QDialog, launch_dialog.Ui_Dialog):
 	def __init__(self):
 		super(self.__class__, self).__init__()
