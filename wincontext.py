@@ -2,7 +2,7 @@
 
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
-from QtWidgets import (
+from PyQt5.QtWidgets import (
     QMainWindow, QMessageBox, QApplication, QTreeWidget,
     QTreeWidgetItem, QFileDialog, QDialog, QListWidgetItem
 )

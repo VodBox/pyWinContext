@@ -255,8 +255,8 @@ def data_out_nest(res, data, parent):
             data_out_nest(temp, item, key)
             for comKey in temp["commandStore"]:
                 res["commandStore"][comKey] = temp["commandStore"][comKey]
-                res["commandStore"][comKey]['regname'] = parent + '-'
-                + res["commandStore"][comKey]['regname']
+                resKey = res["commandStore"][comKey]
+                resKey['regname'] = parent + '-' + resKey['regname']
             for ft in temp["filetypes"]:
                 if ft not in res["filetypes"]:
                     create_filetype(res, ft)
