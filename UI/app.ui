@@ -433,8 +433,18 @@ QTreeView::branch:open:has-children:has-siblings  {
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionCheck_For_Updates"/>
+    <addaction name="separator"/>
+    <addaction name="actionAbout"/>
+    <addaction name="actionSource_Code"/>
+   </widget>
    <addaction name="separator"/>
    <addaction name="menuSave"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionSave">
@@ -463,9 +473,27 @@ QTreeView::branch:open:has-children:has-siblings  {
     <string>Exit</string>
    </property>
   </action>
+  <action name="actionCheck_For_Updates">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Check For Updates</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About pyWinContext</string>
+   </property>
+  </action>
+  <action name="actionSource_Code">
+   <property name="text">
+    <string>Source Code</string>
+   </property>
+  </action>
  </widget>
  <resources>
-  <include location="res.qrc"/>
+  <include location="../res.qrc"/>
  </resources>
  <connections/>
 </ui>

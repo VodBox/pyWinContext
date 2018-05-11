@@ -11,6 +11,9 @@ from UI import app,  command
 import os
 import argparse
 
+import urllib.request
+import webbrowser
+
 import regutils as reg
 
 # import time
@@ -24,9 +27,12 @@ import json
 
 import output
 
-
 import ctypes
-myappid = 'VodBox.pyWinContext.1.0'  # arbitrary string
+
+versionNums = [0, 1, 0]  # major, minor, patch
+versionNumber = ".".join(str(x) for x in versionNums)
+
+myappid = 'VodBox.pyWinContext.' + versionNumber  # arbitrary string
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 parser = argparse.ArgumentParser(
@@ -100,6 +106,21 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
         self.actionSave.setShortcut(QtGui.QKeySequence("Ctrl+S"))
         self.actionImport.triggered.connect(self.action_import)
         self.actionExport.triggered.connect(self.action_export)
+        self.actionSource_Code.triggered.connect(
+            lambda self: webbrowser.open(
+                "https://github.com/VodBox/pyWinContext")
+        )
+        self.actionAbout.triggered.connect(
+            lambda: QMessageBox.about(
+                self, "About pyWinContext",
+                "pyWinContext v" + versionNumber + "\n"
+                + "Written and Maintained by VodBox (Dillon Pentz)\n\n"
+                + "Homepage: https://github.com/VodBox/pyWinContext\n"
+                + "Source: https://github.com/VodBox/pyWinContext\n"
+                + "Downloads: https://github.com/VodBox/pyWinContext/releases"
+            )
+        )
+        self.actionCheck_For_Updates.triggered.connect(self.check_updates)
         self.setWindowTitle('pyWinContext')
         fts = reg.get_file_types()
         types = {}
@@ -261,6 +282,58 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
 
     def action_export(self):
         pass
+
+    def check_updates(self):
+        release = self.find_later_release()
+        if release is False:
+            QMessageBox.information(
+                self, "Check for Updates",
+                "There are no new updates at this time."
+            )
+        else:
+            box = QMessageBox(self)
+            box.setText(
+                "An update is available! It is available at\n"
+                + "https://github.com/VodBox/pyWinContext/releases/tag/"
+                + release)
+            box.setWindowTitle("Check for Updates")
+            box.setIcon(QMessageBox.Information)
+            download = box.addButton("Download", QMessageBox.AcceptRole)
+            box.addButton("Okay", QMessageBox.AcceptRole)
+            box.exec_()
+            clicked = box.clickedButton()
+            if clicked is download:
+                webbrowser.open(
+                    "https://github.com/VodBox/pyWinContext/releases/tag/"
+                    + release)
+
+    def find_later_release(self):
+        resp = urllib.request.urlopen(
+            "https://api.github.com/repos/VodBox/pyWinContext/releases/latest")
+        verInfo = {}
+        try:
+            verInfo = json.loads(resp.read())
+        except json.JSONDecodeError:
+            return False
+        majorNum = int(
+            re.search(r"v(\d+)\.(\d+)\.(\d+)", verInfo["tag_name"]).group(1)
+        )
+        minorNum = int(
+            re.search(r"v(\d+)\.(\d+)\.(\d+)", verInfo["tag_name"]).group(2)
+        )
+        patchNum = int(
+            re.search(r"v(\d+)\.(\d+)\.(\d+)", verInfo["tag_name"]).group(3)
+        )
+        if (
+            majorNum < versionNums[0]
+            or (majorNum == versionNums[0] and minorNum < versionNums[1])
+            or (
+                majorNum == versionNums[0] and minorNum == versionNums[1]
+                and patchNum <= versionNums[2]
+            )
+        ):
+            return False
+        return verInfo["tag_name"]
 
     def search_change(self, text):
         for i in range(0, self.treeWidget_2.topLevelItemCount()):
