@@ -3,8 +3,8 @@
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import (
-    QMainWindow, QMessageBox, QApplication, QTreeWidget,
-    QTreeWidgetItem, QFileDialog, QDialog, QListWidgetItem
+    QMainWindow, QMessageBox, QApplication, QTreeWidget, QTreeWidgetItem,
+    QFileDialog, QDialog, QListWidgetItem, QProgressBar
 )
 from UI import app,  command
 
@@ -220,6 +220,10 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
         self.pushButton.clicked.connect(self.add_custom_filetype)
         self.show()
         self.statusBar().showMessage('Ready')
+        self.progress = QProgressBar(self)
+        self.progress.setEnabled(False)
+        self.progress.setTextVisible(False)
+        self.statusBar().addPermanentWidget(self.progress)
 
     def load(self):
         config = Path(configLoc + "\\config.json")
@@ -254,8 +258,16 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
                     group.setIcon(0, QtGui.QIcon(item["icon_path"]))
                 self.create_items(item["children"], group)
 
+    def set_progress(self, num):
+        self.progress.setValue(num)
+        self.progress.repaint()
+
     def action_save(self):
+        self.setEnabled(False)
+        self.progress.setEnabled(True)
+        self.set_progress(0)
         data = self.get_save_data()
+        self.set_progress(5)
         oldData = None
         config = Path(configLoc + "\\config.json")
         configBak = Path(configLoc + "\\config.json.bak")
@@ -269,12 +281,17 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
         file.close()
         output.configLoc = configLoc
         output.ComModes = ComModes
+        self.set_progress(10)
         if self.direct:
-            output.direct_save(data, oldData)
+            output.direct_save(data, oldData, self)
         else:
-            output.reg_save(data, oldData)
+            output.reg_save(data, oldData, self)
         self.hasChanges = False
         self.setWindowTitle('pyWinContext')
+        self.set_progress(100)
+        self.progress.setEnabled(False)
+        self.set_progress(0)
+        self.setEnabled(True)
         return True
 
     def action_import(self):

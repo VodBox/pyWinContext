@@ -10,7 +10,7 @@ configLoc = os.path.expandvars("%appdata%\\pyWinContext")
 ComModes = None
 
 
-def reg_save(data, oldData):
+def reg_save(data, oldData, parent):
     global completedBat, completedIcon
     completedBat = {}
     completedIcon = {}
@@ -27,11 +27,13 @@ def reg_save(data, oldData):
         os.mkdir(configLoc + "\\iconStore")
     if oldData is not None:
         result = "Windows Registry Editor Version 5.00\r\n\r\n"
+        parent.set_progress(20)
         result += create_reg_clear(oldData)
         result += create_reg_add(data)
         file = open(configLoc + "\\run\\Setup.reg", "w")
         file.write(result)
         file.close()
+        parent.set_progress(80)
         result = "Windows Registry Editor Version 5.00\r\n\r\n"
         result += create_reg_clear(data)
         file = open(configLoc + "\\run\\Remove.reg", "w")
@@ -51,7 +53,7 @@ def reg_save(data, oldData):
     subprocess.Popen(["explorer", "/select," + configLoc + "\\run\\Setup.reg"])
 
 
-def direct_save(data, oldData):
+def direct_save(data, oldData, parent):
     global completedBat, completedIcon
     completedBat = {}
     completedIcon = {}
@@ -68,7 +70,8 @@ def direct_save(data, oldData):
         os.mkdir(configLoc + "\\iconStore")
     if oldData is not None:
         direct_clear(oldData)
-    direct_add(data)
+    parent.set_progress(20)
+    direct_add(data, parent)
 
 
 def create_reg_clear(data):
@@ -173,8 +176,10 @@ def create_reg_add(data):
     return result
 
 
-def direct_add(data):
+def direct_add(data, parent):
     outData = data_to_out(data)
+    init = 30
+    length = len(outData["filetypes"]) / 2
     for filetype in outData["filetypes"]:
         info = outData["filetypes"][filetype]
         for command in info["commands"]:
@@ -206,6 +211,9 @@ def direct_add(data):
                         direct_sub(filetype, com[key], key, outData)
             reg.create_group(
                 "pyWin-" + group, groupObj["name"], filetype, iconPath, coms)
+        init += 35 / length
+        parent.set_progress(init)
+    length = len(outData["commandStore"])
     for command in outData["commandStore"]:
         com = outData["commandStore"][command]
         iconPath = None
@@ -217,6 +225,8 @@ def direct_add(data):
             "cmd /c " + configLoc + "\\comStore\\" + str(com["id"])
             + ".bat \"%1\"", iconPath)
         create_bat(com)
+        init += 35 / length
+        parent.set_progress(init)
 
 
 def data_to_out(data):
