@@ -29,7 +29,7 @@ import output
 
 import ctypes
 
-versionNums = [0, 1, 0]  # major, minor, patch
+versionNums = [0, 1, 2]  # major, minor, patch
 versionNumber = ".".join(str(x) for x in versionNums)
 
 myappid = 'VodBox.pyWinContext.' + versionNumber  # arbitrary string
