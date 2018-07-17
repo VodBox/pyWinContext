@@ -132,7 +132,8 @@ picture at the top of the page, and help immensely with automation.
 
 ## Variables
 
-Please find a list of variables usable in the commands [here](https://ss64.com/nt/syntax-args.html)
+Variables and parameters are handled directly by the batch interpreter in Windows. You can find a helpful list of these [here](https://ss64.com/nt/syntax-args.html)
+
 ## License
 
 This project is licensed under the GPLv3 License - see the [LICENSE](LICENSE) file for details.
