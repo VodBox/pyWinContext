@@ -130,6 +130,10 @@ These are just the basics. With groups added into the picture, you can start to
 build up nested menus and folders for all your actions, like in the preview
 picture at the top of the page, and help immensely with automation.
 
+## Variables
+
+Variables and parameters are handled directly by the batch interpreter in Windows. You can find a helpful list of these [here](https://ss64.com/nt/syntax-args.html)
+
 ## License
 
 This project is licensed under the GPLv3 License - see the [LICENSE](LICENSE) file for details.
