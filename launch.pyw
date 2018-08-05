@@ -19,7 +19,6 @@ class LaunchDialog(QDialog, launch_dialog.Ui_Dialog):
         self.setupUi(self)
         import wincontext
         self.win = wincontext.WinContextApp(False)
-        self.win.hide()
         self.initUI()
 
     def initUI(self):

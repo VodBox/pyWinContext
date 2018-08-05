@@ -11,6 +11,10 @@ from UI import app,  command
 import os
 import argparse
 
+from datetime import datetime
+import logging
+import logging.handlers
+
 import urllib.request
 import webbrowser
 
@@ -46,9 +50,6 @@ configPath = Path(configLoc)
 if not configPath.is_dir():
     os.mkdir(configLoc)
 
-print(configLoc)
-
-
 class ComModes:
     BAT, List = range(2)
 
@@ -60,12 +61,46 @@ if not hasattr(sys, "_MEIPASS"):
 class WinContextApp(QMainWindow, app.Ui_MainWindow):
     def __init__(self, direct):
         super(self.__class__, self).__init__()
+
+        logging.basicConfig(
+            format='%(asctime)s %(message)s', datefmt='[%H:%M:%S]')
+        format = logging.Formatter(
+            '%(asctime)s %(message)s', datefmt='[%H:%M:%S]')
+
+        self.logger = logging.getLogger("debug_log")
+        self.logger.setLevel(logging.DEBUG)
+
+        handler = logging.handlers.RotatingFileHandler(
+                      configLoc + "\\debug.log", backupCount=5)
+
+        self.logger.addHandler(handler)
+        handler.setFormatter(format)
+
+        self.logger.debug(
+            "Running pyWinContext v" + versionNumber
+            + " at " + datetime.now().ctime())
+        self.logger.debug("Config Directory: " + configLoc)
+
+        sys.excepthook = self.logException
+
         self.direct = direct
         self.hasChanges = False
         self.setupUi(self)
         self.treeWidget.setSortingEnabled(False)
         self.load()
         self.initUI()
+
+    def logException(self, exctype, value, tb):
+        self.logger.debug("An Error Has Occured")
+        self.logger.debug("Type: " + exctype.__name__)
+        self.logger.debug("Value: " + str(value))
+        self.logger.debug("Trace: " + str(tb))
+        QMessageBox.critical(
+            self, "An Unexpected Error Has Occured",
+            "pyWinContext has encountered an unexpected error.\n\n"
+            + "Error: " + exctype.__name__ + "\n\n"
+            + str(value) + "\n" + str(tb)
+        )
 
     def closeEvent(self, event):
         if self.hasChanges:
@@ -218,12 +253,13 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
         self.treeWidget.itemSelectionChanged.connect(self.action_select)
         self.comboBox.currentIndexChanged.connect(self.after_change)
         self.pushButton.clicked.connect(self.add_custom_filetype)
-        self.show()
         self.statusBar().showMessage('Ready')
         self.progress = QProgressBar(self)
         self.progress.setEnabled(False)
         self.progress.setTextVisible(False)
         self.statusBar().addPermanentWidget(self.progress)
+
+        self.logger.debug("Loading Complete")
 
     def load(self):
         config = Path(configLoc + "\\config.json")
@@ -263,11 +299,15 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
         self.progress.repaint()
 
     def action_save(self):
+        self.logger.debug("Attempting Save")
+
         self.setEnabled(False)
         self.progress.setEnabled(True)
         self.set_progress(0)
         data = self.get_save_data()
+        self.logger.debug("Retrieved Save Data")
         self.set_progress(5)
+
         oldData = None
         config = Path(configLoc + "\\config.json")
         configBak = Path(configLoc + "\\config.json.bak")
@@ -276,22 +316,32 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
             oldData = json.loads(oldFile.read(), object_pairs_hook=OrderedDict)
             oldFile.close()
             config.replace(configBak)
+            self.logger.debug("Backed Up Config Data")
+
         file = open(configLoc + "\\config.json", 'w')
         file.write(json.dumps(data, indent=4))
         file.close()
         output.configLoc = configLoc
         output.ComModes = ComModes
         self.set_progress(10)
+
+        self.logger.debug("Starting Save...")
+        output.logger = self.logger
+
         if self.direct:
             output.direct_save(data, oldData, self)
         else:
             output.reg_save(data, oldData, self)
+
         self.hasChanges = False
         self.setWindowTitle('pyWinContext')
         self.set_progress(100)
         self.progress.setEnabled(False)
         self.set_progress(0)
         self.setEnabled(True)
+
+        self.logger.debug("Save Successful")
+
         return True
 
     def action_import(self):
@@ -301,13 +351,16 @@ class WinContextApp(QMainWindow, app.Ui_MainWindow):
         pass
 
     def check_updates(self):
+        self.logger.debug("Checking for updates...")
         release = self.find_later_release()
         if release is False:
+            self.logger.debug("Latest release")
             QMessageBox.information(
                 self, "Check for Updates",
                 "There are no new updates at this time."
             )
         else:
+            self.logger.debug("Version " + release + " is available")
             box = QMessageBox(self)
             box.setText(
                 "An update is available! It is available at\n"
