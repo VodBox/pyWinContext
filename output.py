@@ -171,7 +171,7 @@ def create_reg_add(data):
         result += com["regname"] + "\\command]\r\n"
         result += "@=\"cmd /c " + configLoc.replace("\\", "\\\\")
         result += "\\\\comStore\\\\" + str(com["id"])
-        result += ".bat \\\"%1\\\"\"\r\n\r\n"
+        result += ".bat \\\"\"%1\"\\\"\"\r\n\r\n"
         create_bat(com)
     return result
 
@@ -191,7 +191,7 @@ def direct_add(data, parent):
             reg.create_command(
                 "pyWin-" + command["regname"], command["description"],
                 "cmd /c " + configLoc + "\\comStore\\" + str(command["id"])
-                + ".bat %1", filetype, iconPath)
+                + ".bat \"%1\"", filetype, iconPath)
             create_bat(command)
         for group in info["groups"]:
             groupObj = info["groups"][group]
@@ -317,7 +317,7 @@ def create_bat(command):
                 batString += "\r\n" + com
         if command["after"]:
             batString += "\r\ncmd /c " + configLoc + "\\comStore\\"
-            batString += str(command["after"]) + ".bat %1"
+            batString += str(command["after"]) + ".bat \"%1\""
         file.write(batString)
         file.close()
 
